@@ -215,10 +215,7 @@ if ($user->user_type !== 'ADMIN') {
             'user' => [
                 'id'           => $user->id,
                 'email'        => $user->email,
-                // 'first_name'   => $user->first_name,
-                // 'last_name'    => $user->last_name,
-                // 'company_name' => $user->company_name,
-                // 'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
+             
                 'user_type'    => $user->user_type,
                 'dpp_access'   => $user->dpp_access,
                 'quota_dpp'    => $user->quota_dpp,
@@ -228,68 +225,73 @@ if ($user->user_type !== 'ADMIN') {
         ], 200);
     }
 
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required|string',
+    ], [
+        'email.required'    => 'L\'email est obligatoire.',
+        'email.email'       => 'L\'email doit être valide.',
+        'password.required' => 'Le mot de passe est obligatoire.',
+    ]);
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ], [
-            'email.required'    => 'L\'email est obligatoire.',
-            'email.email'       => 'L\'email doit être valide.',
-            'password.required' => 'Le mot de passe est obligatoire.',
-        ]);
+    // Find user
+    $user = User::where('email', $credentials['email'])->first();
 
-        // Find user
-        $user = User::where('email', $credentials['email'])->first();
-
-        // Check credentials
-        if (!$user || !Hash::check($credentials['password'], $user->password)) {
-            return response()->json([
-                'message' => 'Identifiants invalides.'
-            ], 401);
-        }
-
-        // Check email verification (except for SUPER_USER)
-        if (!$user->email_verified && $user->user_type !== 'SUPER_USER') {
-            return response()->json([
-                'message'        => 'Veuillez vérifier votre email avant de vous connecter.',
-                'email_verified' => false,
-            ], 403);
-        }
-
-        // Create new token
-        $token = $user->createToken('veyra-token')->plainTextToken;
-
+    // Check credentials
+    if (!$user || !Hash::check($credentials['password'], $user->password)) {
         return response()->json([
-            'message' => 'Connexion réussie.',
-            'user' => [
-                'id'           => $user->id,
-                'email'        => $user->email,
-                'first_name'   => $user->first_name,
-                'last_name'    => $user->last_name,
-                'company_name' => $user->company_name,
-                'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
-                'user_type'    => $user->user_type,
-                'dpp_access'   => $user->dpp_access,
-                'quota_dpp'    => $user->quota_dpp,
-                'language'     => $user->language,
-            ],
-            'token' => $token,
-        ], 200);
+            'message' => 'Identifiants invalides.'
+        ], 401);
     }
 
-    /**
-     * Logout user
-     */
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-
+    // ✅ 1. Vérifier si c'est un ADMIN
+    if ($user->user_type === 'ADMIN') {
         return response()->json([
-            'message' => 'Déconnexion réussie.'
-        ], 200);
+            'message' => 'Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l\'espace d\'administration.',
+            'error_type' => 'admin_restricted'
+        ], 403);
     }
+
+    // ✅ 2. Vérifier si le compte est approuvé
+    if ($user->status !== 'approved') {
+        return response()->json([
+            'message' => 'Vous n\'avez pas accès. Votre compte n\'est pas encore validé.',
+            'error_type' => 'not_approved',
+            'status' => $user->status
+        ], 403);
+    }
+
+    // ✅ 3. Vérifier l'email (optionnel)
+    if (!$user->email_verified) {
+        return response()->json([
+            'message' => 'Veuillez vérifier votre email avant de vous connecter.',
+            'error_type' => 'email_not_verified'
+        ], 403);
+    }
+
+    // ✅ Tout est OK → Créer le token
+    $token = $user->createToken('veyra-token')->plainTextToken;
+
+    return response()->json([
+        'message' => 'Connexion réussie.',
+        'user' => [
+            'id'           => $user->id,
+            'email'        => $user->email,
+            'first_name'   => $user->first_name,
+            'last_name'    => $user->last_name,
+            'company_name' => $user->company_name,
+            'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
+            'user_type'    => $user->user_type,
+            'status'       => $user->status,
+            'dpp_access'   => $user->dpp_access,
+            'quota_dpp'    => $user->quota_dpp,
+            'language'     => $user->language,
+        ],
+        'token' => $token,
+    ], 200);
+}
 
     /**
      * Get current user info
@@ -389,28 +391,39 @@ if ($user->user_type !== 'ADMIN') {
 
     /**
      * Send verification email
-     */
-    private function sendVerificationEmail(User $user, string $token)
-    {
-        $verificationUrl = env('FRONTEND_URL') . '/verify-email/' . $token;
+     */private function sendVerificationEmail(User $user, string $token)
+{
+    // $verificationUrl n'est plus nécessaire si tu n'utilises plus de lien
+    // tu peux laisser le paramètre $token pour compatibilité, ou le retirer partout dans ton code
 
-        $subject = $user->language === 'fr' 
-            ? 'Vérification de votre compte Veyra' 
-            : 'Verify your Veyra account';
+    $subject = $user->language === 'fr' 
+        ? 'Confirmation de votre inscription sur Veyra'
+        : 'Confirmation of your registration on Veyra';
 
-        $message = $user->language === 'fr'
-            ? "Bonjour {$user->first_name},\n\nMerci de vous être inscrit sur Veyra.\n\nCliquez sur le lien ci-dessous pour vérifier votre email :\n{$verificationUrl}\n\nCordialement,\nL'équipe Veyra"
-            : "Hello {$user->first_name},\n\nThank you for signing up on Veyra.\n\nClick the link below to verify your email:\n{$verificationUrl}\n\nBest regards,\nThe Veyra Team";
+    $message = $user->language === 'fr'
+        ? "Bonjour {$user->first_name},\n\n"
+          . "Merci de vous être inscrit sur Veyra.\n\n"
+          . "Votre demande est en cours de validation par notre équipe. "
+          . "Veuillez attendre un e-mail de retour qui vous indiquera si votre compte "
+          . "a été accepté ou refusé.\n\n"
+          . "Cordialement,\n"
+          . "L'équipe Veyra"
+        : "Hello {$user->first_name},\n\n"
+          . "Thank you for signing up on Veyra.\n\n"
+          . "Your registration is currently under review by our team. "
+          . "Please wait for a follow-up email that will inform you whether "
+          . "your account has been approved or rejected.\n\n"
+          . "Best regards,\n"
+          . "The Veyra Team";
 
-        try {
-            Mail::raw($message, function ($mail) use ($user, $subject) {
-                $mail->to($user->email)
-                     ->subject($subject);
-            });
-        } catch (\Exception $e) {
-            // Log error but don't block registration
-            \Log::error('Failed to send verification email: ' . $e->getMessage());
-        }
+    try {
+        Mail::raw($message, function ($mail) use ($user, $subject) {
+            $mail->to($user->email)
+                 ->subject($subject);
+        });
+    } catch (\Exception $e) {
+        // Log error but don't block registration
+        \Log::error('Failed to send verification email: ' . $e->getMessage());
     }
 }
-
+}

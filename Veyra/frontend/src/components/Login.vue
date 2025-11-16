@@ -214,6 +214,15 @@
               <span v-else>{{ t.connect }}</span>
             </button>
 
+            <!-- Message d'erreur admin -->
+            <transition name="error-slide">
+  <p v-if="adminError" class="error-message admin-error">
+    <span class="error-dot"></span>
+    {{ adminError }}
+  </p>
+</transition>
+
+
             <!-- Message succès (optionnel à afficher) -->
             <p v-if="successMessage" class="success-message">
               {{ successMessage }}
@@ -232,10 +241,12 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
@@ -244,6 +255,7 @@ const language = ref('fr')
 const isLoading = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
+const adminError = ref('')
 const isLangMenuOpen = ref(false)
 const rememberMe = ref(false)
 const successMessage = ref('')
@@ -275,7 +287,10 @@ const translations = {
     passwordShort: 'Mot de passe trop court (min. 6 caractères)',
     show: 'Afficher',
     hide: 'Masquer',
-    success: 'Connexion réussie !'
+    success: 'Connexion réussie !',
+    adminRestricted: 'Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l\'espace d\'administration.',
+    accountNotApproved: 'Vous n\'avez pas accès. Votre compte n\'est pas encore validé.',
+    invalidCredentials: 'Identifiants incorrects'
   },
   en: {
     title: 'Welcome to Veyra ®',
@@ -298,18 +313,17 @@ const translations = {
     passwordShort: 'Password too short (min. 6 characters)',
     show: 'Show',
     hide: 'Hide',
-    success: 'Login successful!'
+    success: 'Login successful!',
+    adminRestricted: 'Administrators cannot log in here. Please use the admin space.',
+    accountNotApproved: 'You do not have access. Your account has not been validated yet.',
+    invalidCredentials: 'Incorrect credentials'
   }
 }
 
 const t = computed(() => translations[language.value])
 
-const changeLanguage = (lang) => {
-  language.value = lang
-}
-
 const selectLanguage = (code) => {
-  changeLanguage(code)
+  language.value = code
   isLangMenuOpen.value = false
 }
 
@@ -319,10 +333,13 @@ const validateEmail = (emailValue) => {
 }
 
 const login = async () => {
+  // Réinitialiser TOUTES les erreurs
   emailError.value = ''
   passwordError.value = ''
+  adminError.value = ''
   successMessage.value = ''
 
+  // Validation
   if (!validateEmail(email.value)) {
     emailError.value = t.value.emailInvalid
     return
@@ -336,7 +353,6 @@ const login = async () => {
   isLoading.value = true
 
   try {
-    // si tu as mis axios.defaults.baseURL = 'http://127.0.0.1:8000' dans un fichier global
     await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
 
     const response = await axios.post(
@@ -349,19 +365,33 @@ const login = async () => {
       { withCredentials: true }
     )
 
+    // ✅ Connexion réussie
     const userData = response.data
     const storage = rememberMe.value ? localStorage : sessionStorage
     storage.setItem('userSession', JSON.stringify(userData))
 
     successMessage.value = t.value.success
-    // Ici ensuite tu pourras faire :
-    // if (userData.user.role === 'admin') router.push('/admin/dashboard')
-    // else router.push('/dashboardclient')
+    
+    setTimeout(() => {
+      router.push('/dashboard')
+    }, 500)
+
   } catch (err) {
-    if (err.response && err.response.status === 401) {
-      alert('Identifiants incorrects ou utilisateur non trouvé')
+    if (err.response && err.response.data) {
+      const errorType = err.response.data.error_type
+      
+      // ✅ Afficher le message selon le type d'erreur
+      if (errorType === 'admin_restricted') {
+        adminError.value = t.value.adminRestricted
+      } else if (errorType === 'not_approved') {
+        adminError.value = t.value.accountNotApproved
+      } else if (err.response.status === 401) {
+        adminError.value = t.value.invalidCredentials
+      } else {
+        adminError.value = err.response.data.message || 'Une erreur est survenue'
+      }
     } else {
-      alert("Une erreur est survenue. Veuillez réessayer.")
+      adminError.value = 'Erreur de connexion'
     }
   } finally {
     isLoading.value = false
@@ -745,6 +775,14 @@ const login = async () => {
   align-items: center;
   gap: 0.35rem;
   font-weight: 500;
+}
+
+.admin-error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #fef2f2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
 }
 
 .error-dot {
