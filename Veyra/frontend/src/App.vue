@@ -10,18 +10,17 @@ import { RouterView } from 'vue-router'
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  width:auto;
 }
 
 html,
 body {
-  height: 100%;
+  width: 100%;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
 }
 
 #app {
-  height: 100%;
-  width: 200%;
-  max-width:500%;
-scroll-behavior: auto;}
+
+}
 </style>

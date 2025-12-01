@@ -201,7 +201,7 @@
                 <span class="checkbox-label">Se souvenir de moi</span>
               </label>
 
-              <a href="#" class="link-blue">{{ t.forgotPassword }}</a>
+<router-link to="/forgot-password" class="link-blue">{{ t.forgotPassword }}</router-link>
             </div>
 
             <!-- Bouton connexion -->

@@ -26,3 +26,5 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::patch('/users/{user}/reject', [UserController::class, 'reject']);
 });
 
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);

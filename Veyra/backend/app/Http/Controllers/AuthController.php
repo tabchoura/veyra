@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\DB;
+use App\Mail\ResetPasswordMail;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -20,11 +23,10 @@ class AuthController extends Controller
         $validated = $request->validate([
             // Company info
             'company_name' => 'required|string|max:255',
-            // ⚠️ on aligne sur la BDD : tva_number
             'tva_number' => 'required|string|max:255',
             
             // Logo (optionnel)
-            'logo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048', // Max 2MB
+            'logo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
             
             // Contact person
             'first_name' => 'required|string|max:255',
@@ -60,7 +62,6 @@ class AuthController extends Controller
                     ->symbols()
             ],
         ], [
-            // Messages personnalisés en français
             'company_name.required' => 'Le nom de la société est obligatoire.',
             'tva_number.required'   => 'Le numéro de TVA est obligatoire.',
             'first_name.required'   => 'Le prénom est obligatoire.',
@@ -103,7 +104,6 @@ class AuthController extends Controller
             // Company
             'company_name' => $validated['company_name'],
             'logo_url'     => $logoPath,
-            // ⚠️ colonne en BDD : tva_number
             'tva_number'   => $validated['tva_number'],
             
             // Contact
@@ -132,16 +132,16 @@ class AuthController extends Controller
             'ip_signup' => $request->ip(),
             'signup_at' => now(),
             
-            // Defaults (cahier des charges : Super utilisateur par défaut)
+            // Defaults
             'user_type'  => 'SUPER_USER',
-            'dpp_access' => 0, // 0 = pas d’accès
+            'dpp_access' => 0,
             'quota_dpp'  => 0,
         ]);
 
         // Send verification email
         $this->sendVerificationEmail($user, $verificationToken);
 
-        // Generate token (mais utilisable seulement après vérification email côté frontend)
+        // Generate token
         $token = $user->createToken('veyra-token')->plainTextToken;
 
         return response()->json([
@@ -159,13 +159,8 @@ class AuthController extends Controller
     }
 
     /**
-     * Login user
-     */  
-
-
-
-
-
+     * Login Admin
+     */
     public function loginadmin(Request $request)
     {
         $credentials = $request->validate([
@@ -180,42 +175,37 @@ class AuthController extends Controller
         // Find user
         $user = User::where('email', $credentials['email'])->first();
 
-        // Check credentials
-       // Find user
-$user = User::where('email', $credentials['email'])->first();
+        // Check if user exists
+        if (!$user) {
+            return response()->json([
+                'message' => 'Identifiants invalides.'
+            ], 401);
+        }
 
-// Check credentials
-if (!$user || !Hash::check($credentials['password'], $user->password)) {
-    return response()->json([
-        'message' => 'Identifiants invalides.'
-    ], 401);
-}
+        // Check password
+        if (!Hash::check($credentials['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Identifiants invalides.'
+            ], 401);
+        }
 
-// Vérifier que c'est bien un ADMIN
-if ($user->user_type !== 'ADMIN') {
-    return response()->json([
-        'message' => 'Accès réservé aux administrateurs.',
-    ], 403);
-}
-
-
-        // // Check email verification (except for SUPER_USER)
-        // if (!$user->email_verified && $user->user_type !== 'SUPER_USER') {
-        //     return response()->json([
-        //         'message'        => 'Veuillez vérifier votre email avant de vous connecter.',
-        //         'email_verified' => false,
-        //     ], 403);
-        // }
+        // Vérifier que c'est bien un ADMIN
+        if ($user->user_type !== 'ADMIN') {
+            return response()->json([
+                'message' => 'Accès réservé aux administrateurs.',
+            ], 403);
+        }
 
         // Create new token
-        $token = $user->createToken('veyra-token')->plainTextToken;
+        $token = $user->createToken('veyra-admin-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Connexion réussie.',
             'user' => [
                 'id'           => $user->id,
                 'email'        => $user->email,
-             
+                'first_name'   => $user->first_name,
+                'last_name'    => $user->last_name,
                 'user_type'    => $user->user_type,
                 'dpp_access'   => $user->dpp_access,
                 'quota_dpp'    => $user->quota_dpp,
@@ -225,73 +215,76 @@ if ($user->user_type !== 'ADMIN') {
         ], 200);
     }
 
-public function login(Request $request)
-{
-    $credentials = $request->validate([
-        'email'    => 'required|email',
-        'password' => 'required|string',
-    ], [
-        'email.required'    => 'L\'email est obligatoire.',
-        'email.email'       => 'L\'email doit être valide.',
-        'password.required' => 'Le mot de passe est obligatoire.',
-    ]);
+    /**
+     * Login User (non-admin)
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ], [
+            'email.required'    => 'L\'email est obligatoire.',
+            'email.email'       => 'L\'email doit être valide.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+        ]);
 
-    // Find user
-    $user = User::where('email', $credentials['email'])->first();
+        // Find user
+        $user = User::where('email', $credentials['email'])->first();
 
-    // Check credentials
-    if (!$user || !Hash::check($credentials['password'], $user->password)) {
+        // Check credentials
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Identifiants invalides.'
+            ], 401);
+        }
+
+        // Vérifier si c'est un ADMIN
+        if ($user->user_type === 'ADMIN') {
+            return response()->json([
+                'message' => 'Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l\'espace d\'administration.',
+                'error_type' => 'admin_restricted'
+            ], 403);
+        }
+
+        // Vérifier si le compte est approuvé
+        if ($user->status !== 'approved') {
+            return response()->json([
+                'message' => 'Vous n\'avez pas accès. Votre compte n\'est pas encore validé.',
+                'error_type' => 'not_approved',
+                'status' => $user->status
+            ], 403);
+        }
+
+        // Vérifier l'email
+        if (!$user->email_verified) {
+            return response()->json([
+                'message' => 'Veuillez vérifier votre email avant de vous connecter.',
+                'error_type' => 'email_not_verified'
+            ], 403);
+        }
+
+        // Créer le token
+        $token = $user->createToken('veyra-token')->plainTextToken;
+
         return response()->json([
-            'message' => 'Identifiants invalides.'
-        ], 401);
+            'message' => 'Connexion réussie.',
+            'user' => [
+                'id'           => $user->id,
+                'email'        => $user->email,
+                'first_name'   => $user->first_name,
+                'last_name'    => $user->last_name,
+                'company_name' => $user->company_name,
+                'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
+                'user_type'    => $user->user_type,
+                'status'       => $user->status,
+                'dpp_access'   => $user->dpp_access,
+                'quota_dpp'    => $user->quota_dpp,
+                'language'     => $user->language,
+            ],
+            'token' => $token,
+        ], 200);
     }
-
-    // ✅ 1. Vérifier si c'est un ADMIN
-    if ($user->user_type === 'ADMIN') {
-        return response()->json([
-            'message' => 'Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l\'espace d\'administration.',
-            'error_type' => 'admin_restricted'
-        ], 403);
-    }
-
-    // ✅ 2. Vérifier si le compte est approuvé
-    if ($user->status !== 'approved') {
-        return response()->json([
-            'message' => 'Vous n\'avez pas accès. Votre compte n\'est pas encore validé.',
-            'error_type' => 'not_approved',
-            'status' => $user->status
-        ], 403);
-    }
-
-    // ✅ 3. Vérifier l'email (optionnel)
-    if (!$user->email_verified) {
-        return response()->json([
-            'message' => 'Veuillez vérifier votre email avant de vous connecter.',
-            'error_type' => 'email_not_verified'
-        ], 403);
-    }
-
-    // ✅ Tout est OK → Créer le token
-    $token = $user->createToken('veyra-token')->plainTextToken;
-
-    return response()->json([
-        'message' => 'Connexion réussie.',
-        'user' => [
-            'id'           => $user->id,
-            'email'        => $user->email,
-            'first_name'   => $user->first_name,
-            'last_name'    => $user->last_name,
-            'company_name' => $user->company_name,
-            'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
-            'user_type'    => $user->user_type,
-            'status'       => $user->status,
-            'dpp_access'   => $user->dpp_access,
-            'quota_dpp'    => $user->quota_dpp,
-            'language'     => $user->language,
-        ],
-        'token' => $token,
-    ], 200);
-}
 
     /**
      * Get current user info
@@ -308,7 +301,6 @@ public function login(Request $request)
                 'last_name'    => $user->last_name,
                 'company_name' => $user->company_name,
                 'logo_url'     => $user->logo_url ? asset('storage/' . $user->logo_url) : null,
-                // ⚠️ cohérent avec la BDD
                 'tva_number'   => $user->tva_number,
                 'function'     => $user->function,
                 'address1'     => $user->address1,
@@ -391,39 +383,142 @@ public function login(Request $request)
 
     /**
      * Send verification email
-     */private function sendVerificationEmail(User $user, string $token)
-{
-    // $verificationUrl n'est plus nécessaire si tu n'utilises plus de lien
-    // tu peux laisser le paramètre $token pour compatibilité, ou le retirer partout dans ton code
+     */
+    private function sendVerificationEmail(User $user, string $token)
+    {
+        $subject = $user->language === 'fr' 
+            ? 'Confirmation de votre inscription sur Veyra'
+            : 'Confirmation of your registration on Veyra';
 
-    $subject = $user->language === 'fr' 
-        ? 'Confirmation de votre inscription sur Veyra'
-        : 'Confirmation of your registration on Veyra';
+        $message = $user->language === 'fr'
+            ? "Bonjour {$user->first_name},\n\n"
+              . "Merci de vous être inscrit sur Veyra.\n\n"
+              . "Votre demande est en cours de validation par notre équipe. "
+              . "Veuillez attendre un e-mail de retour qui vous indiquera si votre compte "
+              . "a été accepté ou refusé.\n\n"
+              . "Cordialement,\n"
+              . "L'équipe Veyra"
+            : "Hello {$user->first_name},\n\n"
+              . "Thank you for signing up on Veyra.\n\n"
+              . "Your registration is currently under review by our team. "
+              . "Please wait for a follow-up email that will inform you whether "
+              . "your account has been approved or rejected.\n\n"
+              . "Best regards,\n"
+              . "The Veyra Team";
 
-    $message = $user->language === 'fr'
-        ? "Bonjour {$user->first_name},\n\n"
-          . "Merci de vous être inscrit sur Veyra.\n\n"
-          . "Votre demande est en cours de validation par notre équipe. "
-          . "Veuillez attendre un e-mail de retour qui vous indiquera si votre compte "
-          . "a été accepté ou refusé.\n\n"
-          . "Cordialement,\n"
-          . "L'équipe Veyra"
-        : "Hello {$user->first_name},\n\n"
-          . "Thank you for signing up on Veyra.\n\n"
-          . "Your registration is currently under review by our team. "
-          . "Please wait for a follow-up email that will inform you whether "
-          . "your account has been approved or rejected.\n\n"
-          . "Best regards,\n"
-          . "The Veyra Team";
-
-    try {
-        Mail::raw($message, function ($mail) use ($user, $subject) {
-            $mail->to($user->email)
-                 ->subject($subject);
-        });
-    } catch (\Exception $e) {
-        // Log error but don't block registration
-        \Log::error('Failed to send verification email: ' . $e->getMessage());
+        try {
+            Mail::raw($message, function ($mail) use ($user, $subject) {
+                $mail->to($user->email)
+                     ->subject($subject);
+            });
+        } catch (\Exception $e) {
+            \Log::error('Failed to send verification email: ' . $e->getMessage());
+        }
     }
-}
+
+    /**
+     * Forgot password
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Aucun compte associé à cet email'
+            ], 404);
+        }
+
+        // Générer un token
+        $token = Str::random(64);
+        
+        // Supprimer les anciens tokens
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        
+        // Sauvegarder le nouveau token
+        DB::table('password_reset_tokens')->insert([
+            'email' => $request->email,
+            'token' => Hash::make($token),
+            'created_at' => now()
+        ]);
+
+        // Envoyer l'email
+        try {
+            Mail::to($user->email)->send(new ResetPasswordMail($token, $user));
+            
+            return response()->json([
+                'message' => 'Email de réinitialisation envoyé'
+            ], 200);
+            
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi email: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Erreur lors de l\'envoi de l\'email'
+            ], 500);
+        }
+    }
+
+    /**
+     * Reset password
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Récupérer le reset
+        $reset = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$reset) {
+            return response()->json([
+                'message' => 'Token invalide ou expiré.'
+            ], 400);
+        }
+
+        // Vérifier le token
+        if (!Hash::check($request->token, $reset->token)) {
+            return response()->json([
+                'message' => 'Token incorrect.'
+            ], 400);
+        }
+
+        // Vérifier expiration : 60 minutes
+        if (Carbon::parse($reset->created_at)->addMinutes(60)->isPast()) {
+            return response()->json([
+                'message' => 'Le lien a expiré.'
+            ], 400);
+        }
+
+        // Mettre à jour le mot de passe
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Supprimer le token utilisé
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        return response()->json([
+            'message' => 'Mot de passe réinitialisé avec succès.'
+        ], 200);
+    }
+
+    /**
+     * Logout
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Déconnexion réussie.'
+        ], 200);
+    }
 }

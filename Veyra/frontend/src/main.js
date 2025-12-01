@@ -1,4 +1,3 @@
-import './assets/main.css'
 // main.js
 import axios from "axios";
 

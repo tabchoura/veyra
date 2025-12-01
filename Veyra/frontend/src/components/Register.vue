@@ -5,7 +5,7 @@
       <div class="logo">Veyra<span>®</span></div>
 
       <div class="lang-login">
-        <!-- Sélecteur de langue style login -->
+        <!-- Sélecteur de langue -->
         <div class="language-dropdown" @click.stop>
           <button
             type="button"
@@ -58,12 +58,9 @@
       <!-- Form -->
       <div class="form-card">
         <h1 class="form-title">{{ t("createAccount") }}</h1>
-        <p class="form-subtitle">
-          {{ t("subtitle") }}
-        </p>
+        <p class="form-subtitle">{{ t("subtitle") }}</p>
 
         <form @submit.prevent="nextStep">
-          <!-- INPUT FICHIER GLOBAL (accessible partout) -->
           <input
             ref="fileInput"
             type="file"
@@ -72,11 +69,10 @@
             style="display: none"
           />
 
-          <!-- ÉTAPE 1 : Détails société -->
+          <!-- ÉTAPE 1 -->
           <div v-if="currentStep === 0">
             <h3 class="section-title">{{ t("company") }}</h3>
 
-            <!-- Upload Logo -->
             <div class="form-group">
               <label>{{ t("companyLogo") }}</label>
               <div class="logo-upload-container">
@@ -91,14 +87,7 @@
                       stroke="currentColor"
                       stroke-width="2"
                     >
-                      <rect
-                        x="3"
-                        y="3"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"
-                      ></rect>
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
                       <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
@@ -172,11 +161,7 @@
 
             <div class="form-group">
               <label>{{ t("address2") }}</label>
-              <input
-                v-model="form.adresse2"
-                :class="{ 'input-error': errors.adresse2 }"
-                @input="errors.adresse2 = ''"
-              />
+              <input v-model="form.adresse2" />
             </div>
 
             <div class="grid-2">
@@ -232,7 +217,7 @@
                 <option>Construction & BTP</option>
                 <option>Industrie manufacturière</option>
                 <option>Énergie (production, distribution, stockage)</option>
-                <option>Immobilier & gestion d’actifs</option>
+                <option>Immobilier & gestion d'actifs</option>
                 <option>Chimie, plasturgie & matériaux</option>
                 <option>Emballage & logistique</option>
                 <option>Automobile & mobilité</option>
@@ -264,11 +249,7 @@
 
             <div class="form-group">
               <label>{{ t("partner") }}</label>
-              <select
-                v-model="form.partner"
-                :class="{ 'input-error': errors.partner }"
-                @change="errors.partner = ''"
-              >
+              <select v-model="form.partner">
                 <option disabled value="">{{ t("selectPartner") }}</option>
                 <option>bAwear Score</option>
                 <option>FTTH</option>
@@ -276,31 +257,15 @@
                 <option>CBI</option>
                 <option>Autre</option>
               </select>
-              <transition name="error-slide">
-                <p v-if="errors.partner" class="error-message">
-                  <span class="error-dot"></span>
-                  {{ errors.partner }}
-                </p>
-              </transition>
             </div>
 
             <div v-if="form.partner === 'Autre'" class="form-group">
               <label>{{ t("specifyPartner") }} *</label>
-              <input
-                v-model="form.partnerOther"
-                :class="{ 'input-error': errors.partnerOther }"
-                @input="errors.partnerOther = ''"
-              />
-              <transition name="error-slide">
-                <p v-if="errors.partnerOther" class="error-message">
-                  <span class="error-dot"></span>
-                  {{ errors.partnerOther }}
-                </p>
-              </transition>
+              <input v-model="form.partnerOther" />
             </div>
           </div>
 
-          <!-- ÉTAPE 2 : Détails compte -->
+          <!-- ÉTAPE 2 -->
           <div v-if="currentStep === 1">
             <h3 class="section-title">{{ t("accountDetails") }}</h3>
 
@@ -416,17 +381,13 @@
             </div>
           </div>
 
-          <!-- ÉTAPE 3 : Confirmation -->
+          <!-- ÉTAPE 3 -->
           <div v-if="currentStep === 2" class="confirmation">
             <h3 class="section-title">{{ t("confirmation") }}</h3>
 
-            <!-- Logo à l'étape 3 -->
             <div class="confirmation-logo">
               <h4 class="confirmation-logo-title">{{ t("logoSummary") }}</h4>
-              <div
-                class="logo-preview logo-preview-small"
-                @click="triggerFileInput"
-              >
+              <div class="logo-preview logo-preview-small" @click="triggerFileInput">
                 <div v-if="!form.logoPreview" class="logo-placeholder">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -437,14 +398,7 @@
                     stroke="currentColor"
                     stroke-width="2"
                   >
-                    <rect
-                      x="3"
-                      y="3"
-                      width="18"
-                      height="18"
-                      rx="2"
-                      ry="2"
-                    ></rect>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
@@ -472,15 +426,9 @@
               {{ t("verifyInfo") }}
             </p>
             <ul>
-              <li>
-                <strong>{{ t("company2") }} :</strong> {{ form.nomSociete }}
-              </li>
-              <li>
-                <strong>{{ t("email") }} :</strong> {{ form.email }}
-              </li>
-              <li>
-                <strong>{{ t("country") }} :</strong> {{ form.pays }}
-              </li>
+              <li><strong>{{ t("company2") }} :</strong> {{ form.nomSociete }}</li>
+              <li><strong>{{ t("email") }} :</strong> {{ form.email }}</li>
+              <li><strong>{{ t("country") }} :</strong> {{ form.pays }}</li>
             </ul>
           </div>
 
@@ -511,10 +459,7 @@
             </button>
           </div>
 
-          <p
-            v-if="serverError"
-            style="color: #dc2626; margin-top: 10px; font-size: 0.9rem"
-          >
+          <p v-if="serverError" style="color: #dc2626; margin-top: 10px; font-size: 0.9rem">
             {{ serverError }}
           </p>
         </form>
@@ -529,10 +474,7 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-
 const currentStep = ref(0);
-
-// langue : même logique que la page login
 const lang = ref("fr");
 const isLangMenuOpen = ref(false);
 const languageOptions = [
@@ -543,7 +485,6 @@ const languageOptions = [
 const fileInput = ref(null);
 const loading = ref(false);
 const serverError = ref("");
-
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 
@@ -572,13 +513,10 @@ const errors = reactive({
   nomSociete: "",
   tvaNumber: "",
   adresse1: "",
-  adresse2: "",
   codePostal: "",
   pays: "",
   secteur: "",
   autresSecteur: "",
-  partner: "",
-  partnerOther: "",
   email: "",
   password: "",
   passwordConfirm: "",
@@ -590,8 +528,7 @@ const translations = {
   fr: {
     login: "Se connecter",
     createAccount: "Créer un compte",
-    subtitle:
-      "Veuillez renseigner vos informations pour commencer à utiliser Veyra.",
+    subtitle: "Veuillez renseigner vos informations pour commencer à utiliser Veyra.",
     steps: ["Société", "Compte", "Confirmation"],
     company: "Détails de l'entreprise",
     companyLogo: "Logo de l'entreprise",
@@ -619,12 +556,10 @@ const translations = {
     confirmPassword: "Confirmer le mot de passe",
     firstName: "Prénom",
     lastName: "Nom",
-    fullName: "Nom & prénom",
     position: "Fonction",
     confirmation: "Confirmation",
     thankYou: "Merci",
-    verifyInfo:
-      "Veuillez vérifier vos informations avant validation finale.",
+    verifyInfo: "Veuillez vérifier vos informations avant validation finale.",
     company2: "Entreprise",
     back: "Retour",
     next: "Suivant",
@@ -666,7 +601,6 @@ const translations = {
     confirmPassword: "Confirm Password",
     firstName: "First Name",
     lastName: "Last Name",
-    fullName: "Full Name",
     position: "Position",
     confirmation: "Confirmation",
     thankYou: "Thank you",
@@ -685,208 +619,40 @@ const translations = {
 
 const t = (key) => translations[lang.value][key];
 
-// changement langue
 const selectLanguage = (code) => {
   lang.value = code;
   isLangMenuOpen.value = false;
 };
 
 const countries = [
-  "Afghanistan",
-  "Albania",
-  "Algeria",
-  "Andorra",
-  "Angola",
-  "Antigua and Barbuda",
-  "Argentina",
-  "Armenia",
-  "Australia",
-  "Austria",
-  "Azerbaijan",
-  "Bahamas",
-  "Bahrain",
-  "Bangladesh",
-  "Barbados",
-  "Belarus",
-  "Belgium",
-  "Belize",
-  "Benin",
-  "Bhutan",
-  "Bolivia",
-  "Bosnia and Herzegovina",
-  "Botswana",
-  "Brazil",
-  "Brunei",
-  "Bulgaria",
-  "Burkina Faso",
-  "Burundi",
-  "Cabo Verde",
-  "Cambodia",
-  "Cameroon",
-  "Canada",
-  "Central African Republic",
-  "Chad",
-  "Chile",
-  "China",
-  "Colombia",
-  "Comoros",
-  "Congo",
-  "Costa Rica",
-  "Croatia",
-  "Cuba",
-  "Cyprus",
-  "Czech Republic",
-  "Denmark",
-  "Djibouti",
-  "Dominica",
-  "Dominican Republic",
-  "Ecuador",
-  "Egypt",
-  "El Salvador",
-  "Equatorial Guinea",
-  "Eritrea",
-  "Estonia",
-  "Eswatini",
-  "Ethiopia",
-  "Fiji",
-  "Finland",
-  "France",
-  "Gabon",
-  "Gambia",
-  "Georgia",
-  "Germany",
-  "Ghana",
-  "Greece",
-  "Grenada",
-  "Guatemala",
-  "Guinea",
-  "Guinea-Bissau",
-  "Guyana",
-  "Haiti",
-  "Honduras",
-  "Hungary",
-  "Iceland",
-  "India",
-  "Indonesia",
-  "Iran",
-  "Iraq",
-  "Ireland",
-  "Israel",
-  "Italy",
-  "Jamaica",
-  "Japan",
-  "Jordan",
-  "Kazakhstan",
-  "Kenya",
-  "Kiribati",
-  "Kosovo",
-  "Kuwait",
-  "Kyrgyzstan",
-  "Laos",
-  "Latvia",
-  "Lebanon",
-  "Lesotho",
-  "Liberia",
-  "Libya",
-  "Liechtenstein",
-  "Lithuania",
-  "Luxembourg",
-  "Madagascar",
-  "Malawi",
-  "Malaysia",
-  "Maldives",
-  "Mali",
-  "Malta",
-  "Marshall Islands",
-  "Mauritania",
-  "Mauritius",
-  "Mexico",
-  "Micronesia",
-  "Moldova",
-  "Monaco",
-  "Mongolia",
-  "Montenegro",
-  "Morocco",
-  "Mozambique",
-  "Myanmar",
-  "Namibia",
-  "Nauru",
-  "Nepal",
-  "Netherlands",
-  "New Zealand",
-  "Nicaragua",
-  "Niger",
-  "Nigeria",
-  "North Korea",
-  "North Macedonia",
-  "Norway",
-  "Oman",
-  "Pakistan",
-  "Palau",
-  "Palestine",
-  "Panama",
-  "Papua New Guinea",
-  "Paraguay",
-  "Peru",
-  "Philippines",
-  "Poland",
-  "Portugal",
-  "Qatar",
-  "Romania",
-  "Russia",
-  "Rwanda",
-  "Saint Kitts and Nevis",
-  "Saint Lucia",
-  "Saint Vincent and the Grenadines",
-  "Samoa",
-  "San Marino",
-  "Sao Tome and Principe",
-  "Saudi Arabia",
-  "Senegal",
-  "Serbia",
-  "Seychelles",
-  "Sierra Leone",
-  "Singapore",
-  "Slovakia",
-  "Slovenia",
-  "Solomon Islands",
-  "Somalia",
-  "South Africa",
-  "South Korea",
-  "South Sudan",
-  "Spain",
-  "Sri Lanka",
-  "Sudan",
-  "Suriname",
-  "Sweden",
-  "Switzerland",
-  "Syria",
-  "Taiwan",
-  "Tajikistan",
-  "Tanzania",
-  "Thailand",
-  "Timor-Leste",
-  "Togo",
-  "Tonga",
-  "Trinidad and Tobago",
-  "Tunisia",
-  "Turkey",
-  "Turkmenistan",
-  "Tuvalu",
-  "Uganda",
-  "Ukraine",
-  "United Arab Emirates",
-  "United Kingdom",
-  "United States",
-  "Uruguay",
-  "Uzbekistan",
-  "Vanuatu",
-  "Vatican City",
-  "Venezuela",
-  "Vietnam",
-  "Yemen",
-  "Zambia",
-  "Zimbabwe",
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
+  "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh",
+  "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
+  "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic",
+  "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba",
+  "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
+  "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+  "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
+  "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait",
+  "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
+  "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
+  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
+  "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+  "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea",
+  "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama",
+  "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+  "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+  "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
+  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
+  "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
+  "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
+  "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
+  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
+  "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
+  "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
 ];
 
 const validateEmail = (email) => {
@@ -895,17 +661,13 @@ const validateEmail = (email) => {
 };
 
 const triggerFileInput = () => {
-  if (fileInput.value) {
-    fileInput.value.click();
-  }
+  if (fileInput.value) fileInput.value.click();
 };
 
 const handleLogoUpload = (event) => {
-  const file = event.target.files && event.target.files[0];
+  const file = event.target.files?.[0];
   if (!file) return;
-
   form.logo = file;
-
   const reader = new FileReader();
   reader.onload = (e) => {
     form.logoPreview = e.target.result;
@@ -916,9 +678,7 @@ const handleLogoUpload = (event) => {
 const removeLogo = () => {
   form.logo = null;
   form.logoPreview = "";
-  if (fileInput.value) {
-    fileInput.value.value = "";
-  }
+  if (fileInput.value) fileInput.value.value = "";
 };
 
 const nextStep = () => {
@@ -926,46 +686,21 @@ const nextStep = () => {
 
   if (currentStep.value === 0) {
     let hasError = false;
-
-    if (!form.nomSociete) {
-      errors.nomSociete = t("required");
-      hasError = true;
-    }
-    if (!form.tvaNumber) {
-      errors.tvaNumber = t("required");
-      hasError = true;
-    }
-    if (!form.adresse1) {
-      errors.adresse1 = t("required");
-      hasError = true;
-    }
-    if (!form.codePostal) {
-      errors.codePostal = t("required");
-      hasError = true;
-    }
-    if (!form.pays) {
-      errors.pays = t("required");
-      hasError = true;
-    }
-    if (!form.secteur) {
-      errors.secteur = t("required");
-      hasError = true;
-    }
+    if (!form.nomSociete) { errors.nomSociete = t("required"); hasError = true; }
+    if (!form.tvaNumber) { errors.tvaNumber = t("required"); hasError = true; }
+    if (!form.adresse1) { errors.adresse1 = t("required"); hasError = true; }
+    if (!form.codePostal) { errors.codePostal = t("required"); hasError = true; }
+    if (!form.pays) { errors.pays = t("required"); hasError = true; }
+    if (!form.secteur) { errors.secteur = t("required"); hasError = true; }
     if (form.secteur === "Autres" && !form.autresSecteur) {
       errors.autresSecteur = t("required");
       hasError = true;
     }
-    if (form.partner === "Autre" && !form.partnerOther) {
-      errors.partnerOther = t("required");
-      hasError = true;
-    }
-
     if (hasError) return;
   }
 
   if (currentStep.value === 1) {
     let hasError = false;
-
     if (!form.email) {
       errors.email = t("required");
       hasError = true;
@@ -973,7 +708,6 @@ const nextStep = () => {
       errors.email = t("emailInvalid");
       hasError = true;
     }
-
     if (!form.password) {
       errors.password = t("required");
       hasError = true;
@@ -981,7 +715,6 @@ const nextStep = () => {
       errors.password = t("passwordLength");
       hasError = true;
     }
-
     if (!form.passwordConfirm) {
       errors.passwordConfirm = t("required");
       hasError = true;
@@ -989,16 +722,8 @@ const nextStep = () => {
       errors.passwordConfirm = t("passwordMatch");
       hasError = true;
     }
-
-    if (!form.firstName) {
-      errors.firstName = t("required");
-      hasError = true;
-    }
-    if (!form.lastName) {
-      errors.lastName = t("required");
-      hasError = true;
-    }
-
+    if (!form.firstName) { errors.firstName = t("required"); hasError = true; }
+    if (!form.lastName) { errors.lastName = t("required"); hasError = true; }
     if (hasError) return;
   }
 
@@ -1014,46 +739,28 @@ const submitForm = async () => {
   serverError.value = "";
 
   try {
-    // 1. Récupérer le CSRF cookie
     await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
       withCredentials: true,
     });
     const formData = new FormData();
-
-    // Société
     formData.append("company_name", form.nomSociete);
-    // ⚠️ Assure-toi que le backend utilise bien 'vat_number'
     formData.append("tva_number", form.tvaNumber);
     formData.append("address1", form.adresse1);
     formData.append("address2", form.adresse2 || "");
     formData.append("postal_code", form.codePostal);
     formData.append("country", form.pays);
     formData.append("sector", form.secteur);
-    if (form.secteur === "Autres") {
-      formData.append("sector_other", form.autresSecteur);
-    }
-
-    // Partenaires
+    if (form.secteur === "Autres") formData.append("sector_other", form.autresSecteur);
     formData.append("partner", form.partner || "");
-    if (form.partner === "Autre") {
-      formData.append("partner_other", form.partnerOther || "");
-    }
-
-    // Auth + contact
+    if (form.partner === "Autre") formData.append("partner_other", form.partnerOther || "");
     formData.append("email", form.email);
     formData.append("password", form.password);
     formData.append("password_confirmation", form.passwordConfirm);
     formData.append("first_name", form.firstName);
     formData.append("last_name", form.lastName);
     formData.append("function", form.fonction || "");
-
-    // Préférences
     formData.append("language", lang.value);
-
-    // Logo
-    if (form.logo) {
-      formData.append("logo", form.logo);
-    }
+    if (form.logo) formData.append("logo", form.logo);
 
     await axios.post("http://127.0.0.1:8000/api/auth/register", formData, {
       withCredentials: true,
@@ -1076,21 +783,25 @@ const submitForm = async () => {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+}
+
 .register-wrapper {
   background: #f8f9fb;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
   font-family: "Inter", sans-serif;
 }
 
 .topbar {
   display: flex;
   justify-content: space-between;
-  padding: 20px 50px;
+  align-items: center;
+  padding: 20px 40px;
   background: white;
   border-bottom: 1px solid #e5e5e5;
-  align-items: center;
+  width: 100%;
 }
 
 .logo {
@@ -1109,10 +820,8 @@ const submitForm = async () => {
   gap: 16px;
 }
 
-/* Dropdown langue */
 .language-dropdown {
   position: relative;
-  margin-bottom: 0px;
 }
 
 .language-toggle {
@@ -1127,7 +836,6 @@ const submitForm = async () => {
   font-size: 0.9rem;
   color: #111827;
   transition: all 0.2s ease;
-  box-shadow: 0 0 0 0 transparent;
 }
 
 .language-toggle:hover {
@@ -1177,7 +885,6 @@ const submitForm = async () => {
   background-color: #f3f4f6;
 }
 
-/* Transition du menu langue */
 .fade-scale-enter-active,
 .fade-scale-leave-active {
   transition: all 0.15s ease-out;
@@ -1189,7 +896,6 @@ const submitForm = async () => {
   transform: scale(0.95) translateY(-4px);
 }
 
-/* Bouton login */
 .login-link {
   padding: 8px 16px;
   background-color: #3b82f6;
@@ -1210,7 +916,9 @@ const submitForm = async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 40px;
+  padding: 40px 20px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .stepper {
@@ -1221,12 +929,12 @@ const submitForm = async () => {
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   margin-bottom: 40px;
+  max-width: 100%;
 }
 
 .step {
   display: flex;
   align-items: center;
-  position: relative;
 }
 
 .circle {
@@ -1237,6 +945,7 @@ const submitForm = async () => {
   background: white;
   margin-right: 10px;
   transition: all 0.3s;
+  flex-shrink: 0;
 }
 .circle.active {
   border-color: #0a58ff;
@@ -1248,6 +957,7 @@ const submitForm = async () => {
   width: 50px;
   background: #ccc;
   margin: 0 10px;
+  flex-shrink: 0;
 }
 .line.filled {
   background: #0a58ff;
@@ -1256,6 +966,7 @@ const submitForm = async () => {
 .step p {
   font-size: 14px;
   color: #999;
+  white-space: nowrap;
 }
 .activeText {
   color: #0a58ff !important;
@@ -1265,7 +976,7 @@ const submitForm = async () => {
 .form-card {
   background: white;
   padding: 40px;
-  width: 90%;
+  width: 100%;
   max-width: 650px;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -1309,6 +1020,7 @@ select {
   font-size: 14px;
   transition: all 0.2s;
   background-color: #f9fafb;
+  width: 100%;
 }
 input:focus,
 select:focus {
@@ -1342,6 +1054,7 @@ select:focus {
   height: 6px;
   background-color: #dc2626;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .error-slide-enter-active,
@@ -1349,11 +1062,7 @@ select:focus {
   transition: all 0.25s ease;
 }
 
-.error-slide-enter-from {
-  opacity: 0;
-  transform: translateY(-6px);
-}
-
+.error-slide-enter-from,
 .error-slide-leave-to {
   opacity: 0;
   transform: translateY(-6px);
@@ -1363,6 +1072,32 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .topbar {
+    padding: 15px 20px;
+  }
+  
+  .form-card {
+    padding: 30px 20px;
+  }
+  
+  .stepper {
+    padding: 20px;
+  }
+  
+  .step p {
+    font-size: 12px;
+  }
+  
+  .line {
+    width: 30px;
+  }
 }
 
 .confirmation ul {
@@ -1396,6 +1131,7 @@ select:focus {
   justify-content: flex-end;
   gap: 15px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .primary-btn {
@@ -1419,8 +1155,11 @@ select:focus {
 .primary-btn:hover {
   background: #0847cc;
 }
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-/* Logo Upload Styles */
 .logo-upload-container {
   display: flex;
   flex-direction: column;
@@ -1487,14 +1226,12 @@ select:focus {
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s;
-  margin-top: 8px;
 }
 
 .remove-logo-btn:hover {
   background: #dc2626;
 }
 
-/* Password eye */
 .password-wrapper {
   position: relative;
   display: flex;
@@ -1513,6 +1250,6 @@ select:focus {
   background: transparent;
   cursor: pointer;
   font-size: 16px;
-  padding: 0;
+  padding: 4px;
 }
 </style>

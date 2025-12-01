@@ -155,4 +155,6 @@ class UserController extends Controller
             \Log::error('Failed to send rejection email: ' . $e->getMessage());
         }
     }
+  
+
 }
