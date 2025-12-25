@@ -60,12 +60,12 @@
         <h1 class="form-title">{{ t("createAccount") }}</h1>
         <p class="form-subtitle">{{ t("subtitle") }}</p>
 
-        <form @submit.prevent="nextStep">
+        <form @submit.prevent="currentStep < 2 ? nextStep() : submitForm()">
           <input
             ref="fileInput"
             type="file"
             accept="image/*"
-            @change="handleLogoUpload($event)"
+            @change="handleLogoUpload"
             style="display: none"
           />
 
@@ -93,6 +93,7 @@
                     </svg>
                     <p>{{ t("uploadLogo") }}</p>
                   </div>
+
                   <img
                     v-else
                     :src="form.logoPreview"
@@ -100,6 +101,7 @@
                     class="logo-image"
                   />
                 </div>
+
                 <button
                   v-if="form.logoPreview"
                   type="button"
@@ -111,88 +113,138 @@
               </div>
             </div>
 
-            <div class="form-group">
+            <!-- Nom société -->
+            <div
+              class="form-group"
+              @mouseenter="showHint('nomSociete')"
+              @mouseleave="hideHint('nomSociete')"
+            >
               <label>{{ t("companyName") }} *</label>
+
               <input
-                v-model="form.nomSociete"
+                v-model.trim="form.nomSociete"
                 required
                 :class="{ 'input-error': errors.nomSociete }"
-                @input="errors.nomSociete = ''"
+                @input="clearError('nomSociete')"
               />
+
               <transition name="error-slide">
                 <p v-if="errors.nomSociete" class="error-message">
                   <span class="error-dot"></span>
                   {{ errors.nomSociete }}
                 </p>
               </transition>
+
+              <p v-if="!errors.nomSociete && hints.nomSociete" class="hint-message">
+                {{ hintMessages.nomSociete[lang] }}
+              </p>
             </div>
 
-            <div class="form-group">
+            <!-- TVA -->
+            <div
+              class="form-group"
+              @mouseenter="showHint('tvaNumber')"
+              @mouseleave="hideHint('tvaNumber')"
+            >
               <label>{{ t("tvaNumber") }} *</label>
+
               <input
-                v-model="form.tvaNumber"
+              inputmode="numeric" 
+                v-model.trim="form.tvaNumber"
                 required
                 :class="{ 'input-error': errors.tvaNumber }"
-                @input="errors.tvaNumber = ''"
+                @input="clearError('tvaNumber')"
               />
+
               <transition name="error-slide">
                 <p v-if="errors.tvaNumber" class="error-message">
                   <span class="error-dot"></span>
                   {{ errors.tvaNumber }}
                 </p>
               </transition>
+
+              <p v-if="!errors.tvaNumber && hints.tvaNumber" class="hint-message">
+                {{ hintMessages.tvaNumber[lang] }}
+              </p>
             </div>
 
-            <div class="form-group">
+            <!-- Adresse -->
+            <div
+              class="form-group"
+              @mouseenter="showHint('adresse1')"
+              @mouseleave="hideHint('adresse1')"
+            >
               <label>{{ t("address") }} *</label>
               <input
-                v-model="form.adresse1"
+                v-model.trim="form.adresse1"
                 required
                 :class="{ 'input-error': errors.adresse1 }"
-                @input="errors.adresse1 = ''"
+                @input="clearError('adresse1')"
               />
+
               <transition name="error-slide">
                 <p v-if="errors.adresse1" class="error-message">
                   <span class="error-dot"></span>
                   {{ errors.adresse1 }}
                 </p>
               </transition>
+
+              <p v-if="!errors.adresse1 && hints.adresse1" class="hint-message">
+                {{ hintMessages.adresse1[lang] }}
+              </p>
             </div>
 
             <div class="form-group">
               <label>{{ t("address2") }}</label>
-              <input v-model="form.adresse2" />
+              <input v-model.trim="form.adresse2" />
             </div>
 
             <div class="grid-2">
-              <div class="form-group">
+              <!-- Code postal -->
+              <div
+                class="form-group"
+                @mouseenter="showHint('codePostal')"
+                @mouseleave="hideHint('codePostal')"
+              >
                 <label>{{ t("postalCode") }} *</label>
-                <input
-                  v-model="form.codePostal"
+                <input inputmode="numeric" 
+                  v-model.trim="form.codePostal"
                   required
                   :class="{ 'input-error': errors.codePostal }"
-                  @input="errors.codePostal = ''"
+                  @input="clearError('codePostal')"
                 />
+
                 <transition name="error-slide">
                   <p v-if="errors.codePostal" class="error-message">
                     <span class="error-dot"></span>
                     {{ errors.codePostal }}
                   </p>
                 </transition>
+
+                <p v-if="!errors.codePostal && hints.codePostal" class="hint-message">
+                  {{ hintMessages.codePostal[lang] }}
+                </p>
               </div>
+
+              <!-- Pays -->
               <div class="form-group">
                 <label>{{ t("country") }} *</label>
                 <select
                   v-model="form.pays"
                   required
                   :class="{ 'input-error': errors.pays }"
-                  @change="errors.pays = ''"
+                  @change="clearError('pays')"
                 >
                   <option disabled value="">{{ t("selectCountry") }}</option>
-                  <option v-for="country in countries" :key="country">
+                  <option
+                    v-for="country in countries"
+                    :key="country"
+                    :value="country"
+                  >
                     {{ country }}
                   </option>
                 </select>
+
                 <transition name="error-slide">
                   <p v-if="errors.pays" class="error-message">
                     <span class="error-dot"></span>
@@ -202,27 +254,31 @@
               </div>
             </div>
 
+            <!-- Secteur -->
             <div class="form-group">
               <label>{{ t("sector") }} *</label>
               <select
                 v-model="form.secteur"
                 required
                 :class="{ 'input-error': errors.secteur }"
-                @change="errors.secteur = ''"
+                @change="clearError('secteur')"
               >
                 <option disabled value="">{{ t("selectSector") }}</option>
-                <option>Textile & mode</option>
-                <option>Agroalimentaire</option>
-                <option>Électronique & technologies</option>
-                <option>Construction & BTP</option>
-                <option>Industrie manufacturière</option>
-                <option>Énergie (production, distribution, stockage)</option>
-                <option>Immobilier & gestion d'actifs</option>
-                <option>Chimie, plasturgie & matériaux</option>
-                <option>Emballage & logistique</option>
-                <option>Automobile & mobilité</option>
-                <option>Autres</option>
+                <option value="Textile & mode">Textile & mode</option>
+                <option value="Agroalimentaire">Agroalimentaire</option>
+                <option value="Électronique & technologies">Électronique & technologies</option>
+                <option value="Construction & BTP">Construction & BTP</option>
+                <option value="Industrie manufacturière">Industrie manufacturière</option>
+                <option value="Énergie (production, distribution, stockage)">
+                  Énergie (production, distribution, stockage)
+                </option>
+                <option value="Immobilier & gestion d'actifs">Immobilier & gestion d'actifs</option>
+                <option value="Chimie, plasturgie & matériaux">Chimie, plasturgie & matériaux</option>
+                <option value="Emballage & logistique">Emballage & logistique</option>
+                <option value="Automobile & mobilité">Automobile & mobilité</option>
+                <option value="Autres">Autres</option>
               </select>
+
               <transition name="error-slide">
                 <p v-if="errors.secteur" class="error-message">
                   <span class="error-dot"></span>
@@ -231,13 +287,14 @@
               </transition>
             </div>
 
+            <!-- Autres secteur -->
             <div v-if="form.secteur === 'Autres'" class="form-group">
               <label>{{ t("specifySector") }} *</label>
               <input
-                v-model="form.autresSecteur"
+                v-model.trim="form.autresSecteur"
                 required
                 :class="{ 'input-error': errors.autresSecteur }"
-                @input="errors.autresSecteur = ''"
+                @input="clearError('autresSecteur')"
               />
               <transition name="error-slide">
                 <p v-if="errors.autresSecteur" class="error-message">
@@ -247,21 +304,22 @@
               </transition>
             </div>
 
+            <!-- Partner -->
             <div class="form-group">
               <label>{{ t("partner") }}</label>
               <select v-model="form.partner">
                 <option disabled value="">{{ t("selectPartner") }}</option>
-                <option>bAwear Score</option>
-                <option>FTTH</option>
-                <option>MODINT</option>
-                <option>CBI</option>
-                <option>Autre</option>
+                <option value="bAwear Score">bAwear Score</option>
+                <option value="FTTH">FTTH</option>
+                <option value="MODINT">MODINT</option>
+                <option value="CBI">CBI</option>
+                <option value="Autre">Autre</option>
               </select>
             </div>
 
             <div v-if="form.partner === 'Autre'" class="form-group">
               <label>{{ t("specifyPartner") }} *</label>
-              <input v-model="form.partnerOther" />
+              <input v-model.trim="form.partnerOther" />
             </div>
           </div>
 
@@ -269,116 +327,168 @@
           <div v-if="currentStep === 1">
             <h3 class="section-title">{{ t("accountDetails") }}</h3>
 
-            <div class="form-group">
-              <label>{{ t("email") }} *</label>
-              <input
-                type="email"
-                v-model="form.email"
-                required
-                :class="{ 'input-error': errors.email }"
-                @input="errors.email = ''"
-              />
-              <transition name="error-slide">
-                <p v-if="errors.email" class="error-message">
-                  <span class="error-dot"></span>
-                  {{ errors.email }}
-                </p>
-              </transition>
+            <div
+  class="form-group"
+  @mouseenter="showHint('email')"
+  @mouseleave="hideHint('email')"
+>
+  <label>{{ t("email") }} *</label>
+  <input
+    type="email"
+    v-model.trim="form.email"
+    required
+    :class="{ 'input-error': errors.email }"
+    @input="clearError('email')"
+  />
+
+  <transition name="error-slide">
+    <p v-if="errors.email" class="error-message">
+      <span class="error-dot"></span>
+      {{ errors.email }}
+    </p>
+  </transition>
+
+  <p v-if="!errors.email && hints.email" class="hint-message">
+    {{ hintMessages.email[lang] }}
+  </p>
+</div>
+
+
+            <div class="grid-2">
+            <div
+  class="form-group"
+  @mouseenter="showHint('password')"
+  @mouseleave="hideHint('password')"
+>
+  <label>{{ t("password") }} *</label>
+  <div class="password-wrapper">
+    <input
+      :type="showPassword ? 'text' : 'password'"
+      v-model="form.password"
+      required
+      minlength="8"
+      :class="{ 'input-error': errors.password }"
+      @input="clearError('password')"
+    />
+    <button type="button" class="eye-btn" @click="showPassword = !showPassword">
+      {{ showPassword ? "🙈" : "👁️" }}
+    </button>
+  </div>
+
+  <transition name="error-slide">
+    <p v-if="errors.password" class="error-message">
+      <span class="error-dot"></span>
+      {{ errors.password }}
+    </p>
+  </transition>
+
+  <p v-if="!errors.password && hints.password" class="hint-message">
+    {{ hintMessages.password[lang] }}
+  </p>
+</div>
+
+
+           <div
+  class="form-group"
+  @mouseenter="showHint('passwordConfirm')"
+  @mouseleave="hideHint('passwordConfirm')"
+>
+  <label>{{ t("confirmPassword") }} *</label>
+  <div class="password-wrapper">
+    <input
+      :type="showPasswordConfirm ? 'text' : 'password'"
+      v-model="form.passwordConfirm"
+      required
+      minlength="8"
+      :class="{ 'input-error': errors.passwordConfirm }"
+      @input="clearError('passwordConfirm')"
+    />
+    <button type="button" class="eye-btn" @click="showPasswordConfirm = !showPasswordConfirm">
+      {{ showPasswordConfirm ? "🙈" : "👁️" }}
+    </button>
+  </div>
+
+  <transition name="error-slide">
+    <p v-if="errors.passwordConfirm" class="error-message">
+      <span class="error-dot"></span>
+      {{ errors.passwordConfirm }}
+    </p>
+  </transition>
+
+  <p v-if="!errors.passwordConfirm && hints.passwordConfirm" class="hint-message">
+    {{ hintMessages.passwordConfirm[lang] }}
+  </p>
+</div>
+
             </div>
 
             <div class="grid-2">
-              <div class="form-group">
-                <label>{{ t("password") }} *</label>
-                <div class="password-wrapper">
-                  <input
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="form.password"
-                    required
-                    minlength="8"
-                    :class="{ 'input-error': errors.password }"
-                    @input="errors.password = ''"
-                  />
-                  <button
-                    type="button"
-                    class="eye-btn"
-                    @click="showPassword = !showPassword"
-                  >
-                    {{ showPassword ? "🙈" : "👁️" }}
-                  </button>
-                </div>
-                <transition name="error-slide">
-                  <p v-if="errors.password" class="error-message">
-                    <span class="error-dot"></span>
-                    {{ errors.password }}
-                  </p>
-                </transition>
-              </div>
+           <div
+  class="form-group"
+  @mouseenter="showHint('firstName')"
+  @mouseleave="hideHint('firstName')"
+>
+  <label>{{ t("firstName") }} *</label>
+  <input
+    v-model.trim="form.firstName"
+    required
+    :class="{ 'input-error': errors.firstName }"
+    @input="clearError('firstName')"
+  />
 
-              <div class="form-group">
-                <label>{{ t("confirmPassword") }} *</label>
-                <div class="password-wrapper">
-                  <input
-                    :type="showPasswordConfirm ? 'text' : 'password'"
-                    v-model="form.passwordConfirm"
-                    required
-                    minlength="8"
-                    :class="{ 'input-error': errors.passwordConfirm }"
-                    @input="errors.passwordConfirm = ''"
-                  />
-                  <button
-                    type="button"
-                    class="eye-btn"
-                    @click="showPasswordConfirm = !showPasswordConfirm"
-                  >
-                    {{ showPasswordConfirm ? "🙈" : "👁️" }}
-                  </button>
-                </div>
-                <transition name="error-slide">
-                  <p v-if="errors.passwordConfirm" class="error-message">
-                    <span class="error-dot"></span>
-                    {{ errors.passwordConfirm }}
-                  </p>
-                </transition>
-              </div>
+  <transition name="error-slide">
+    <p v-if="errors.firstName" class="error-message">
+      <span class="error-dot"></span>
+      {{ errors.firstName }}
+    </p>
+  </transition>
+
+  <p v-if="!errors.firstName && hints.firstName" class="hint-message">
+    {{ hintMessages.firstName[lang] }}
+  </p>
+</div>
+
+
+             <div
+  class="form-group"
+  @mouseenter="showHint('lastName')"
+  @mouseleave="hideHint('lastName')"
+>
+  <label>{{ t("lastName") }} *</label>
+  <input
+    v-model.trim="form.lastName"
+    required
+    :class="{ 'input-error': errors.lastName }"
+    @input="clearError('lastName')"
+  />
+
+  <transition name="error-slide">
+    <p v-if="errors.lastName" class="error-message">
+      <span class="error-dot"></span>
+      {{ errors.lastName }}
+    </p>
+  </transition>
+
+  <p v-if="!errors.lastName && hints.lastName" class="hint-message">
+    {{ hintMessages.lastName[lang] }}
+  </p>
+</div>
+
             </div>
 
-            <div class="grid-2">
-              <div class="form-group">
-                <label>{{ t("firstName") }} *</label>
-                <input
-                  v-model="form.firstName"
-                  required
-                  :class="{ 'input-error': errors.firstName }"
-                  @input="errors.firstName = ''"
-                />
-                <transition name="error-slide">
-                  <p v-if="errors.firstName" class="error-message">
-                    <span class="error-dot"></span>
-                    {{ errors.firstName }}
-                  </p>
-                </transition>
-              </div>
-              <div class="form-group">
-                <label>{{ t("lastName") }} *</label>
-                <input
-                  v-model="form.lastName"
-                  required
-                  :class="{ 'input-error': errors.lastName }"
-                  @input="errors.lastName = ''"
-                />
-                <transition name="error-slide">
-                  <p v-if="errors.lastName" class="error-message">
-                    <span class="error-dot"></span>
-                    {{ errors.lastName }}
-                  </p>
-                </transition>
-              </div>
-            </div>
+         <div
+  class="form-group"
+  @mouseenter="showHint('fonction')"
+  @mouseleave="hideHint('fonction')"
+>
+  <label>{{ t("position") }}</label>
+  <input v-model.trim="form.fonction" />
 
-            <div class="form-group">
-              <label>{{ t("position") }}</label>
-              <input v-model="form.fonction" />
-            </div>
+  <p v-if="hints.fonction" class="hint-message">
+    {{ hintMessages.fonction[lang] }}
+  </p>
+</div>
+
           </div>
 
           <!-- ÉTAPE 3 -->
@@ -411,6 +521,7 @@
                   class="logo-image"
                 />
               </div>
+
               <button
                 v-if="form.logoPreview"
                 type="button"
@@ -425,6 +536,7 @@
               {{ t("thankYou") }}, {{ form.firstName }} {{ form.lastName }} !
               {{ t("verifyInfo") }}
             </p>
+
             <ul>
               <li><strong>{{ t("company2") }} :</strong> {{ form.nomSociete }}</li>
               <li><strong>{{ t("email") }} :</strong> {{ form.email }}</li>
@@ -459,7 +571,7 @@
             </button>
           </div>
 
-          <p v-if="serverError" style="color: #dc2626; margin-top: 10px; font-size: 0.9rem">
+          <p v-if="serverError" class="server-error">
             {{ serverError }}
           </p>
         </form>
@@ -470,13 +582,15 @@
 
 <script setup>
 import { reactive, ref } from "vue";
-import axios from "axios";
+import api from "@/axios";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+
 const currentStep = ref(0);
 const lang = ref("fr");
 const isLangMenuOpen = ref(false);
+
 const languageOptions = [
   { code: "fr", label: "FR" },
   { code: "en", label: "EN" },
@@ -487,6 +601,34 @@ const loading = ref(false);
 const serverError = ref("");
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
+
+const hints = reactive({
+  nomSociete: false,
+  tvaNumber: false,
+  adresse1: false,
+  codePostal: false,
+
+  email: false,
+  password: false,
+  passwordConfirm: false,
+  firstName: false,
+  lastName: false,
+  fonction: false,
+});
+
+const hintMessages = {
+  nomSociete: { fr: "Nom légal de l’entreprise", en: "Legal company name" },
+  tvaNumber: { fr: "Numéro fiscal (TVA) de l’entreprise", en: "Company VAT identification number" },
+  adresse1: { fr: "Adresse complète (min 5 caractères)", en: "Full address (min 5 characters)" },
+  codePostal: { fr: "Tunisie: 4 chiffres (ex: 4000)", en: "Tunisia: 4 digits (e.g., 4000)" },
+
+  email: { fr: "Ex: nom@domaine.com", en: "Example: name@domain.com" },
+  password: { fr: "Au moins 8 caractères", en: "At least 8 characters" },
+  passwordConfirm: { fr: "Doit être identique au mot de passe", en: "Must match the password" },
+  firstName: { fr: "Votre prénom", en: "Your first name" },
+  lastName: { fr: "Votre nom", en: "Your last name" },
+  fonction: { fr: "Poste (optionnel) : ex. Responsable RSE", en: "Role (optional): e.g., ESG Manager" },
+};
 
 const form = reactive({
   logo: null,
@@ -564,11 +706,12 @@ const translations = {
     back: "Retour",
     next: "Suivant",
     createBtn: "Créer le compte",
-    success: "Compte créé avec succès !",
     passwordMatch: "Les mots de passe ne correspondent pas",
     passwordLength: "Le mot de passe doit contenir au moins 8 caractères",
     required: "Ce champ est obligatoire",
     emailInvalid: "Email invalide",
+    addressInvalid: "Adresse trop courte (minimum 5 caractères)",
+    postalInvalid: "Code postal invalide (Tunisie: 4 chiffres)",
   },
   en: {
     login: "Login",
@@ -609,11 +752,12 @@ const translations = {
     back: "Back",
     next: "Next",
     createBtn: "Create Account",
-    success: "Account created successfully!",
     passwordMatch: "Passwords do not match",
     passwordLength: "Password must be at least 8 characters long",
     required: "This field is required",
     emailInvalid: "Invalid email",
+    addressInvalid: "Address is too short (minimum 5 characters)",
+    postalInvalid: "Invalid postal code (Tunisia: 4 digits)",
   },
 };
 
@@ -625,39 +769,47 @@ const selectLanguage = (code) => {
 };
 
 const countries = [
-  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
-  "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh",
-  "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
-  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
-  "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic",
-  "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba",
-  "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
-  "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini",
-  "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
-  "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
-  "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
-  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kosovo", "Kuwait",
-  "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein",
-  "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
-  "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
-  "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
-  "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea",
-  "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama",
-  "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
-  "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
-  "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe",
-  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia",
-  "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan",
-  "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan",
-  "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago",
-  "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates",
-  "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City",
-  "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe",
+  "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina",
+  "Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh",
+  "Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia",
+  "Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
+  "Burundi","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic",
+  "Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba",
+  "Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic",
+  "Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini",
+  "Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana",
+  "Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras",
+  "Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy",
+  "Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait",
+  "Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein",
+  "Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta",
+  "Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco",
+  "Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal",
+  "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea",
+  "North Macedonia","Norway","Oman","Pakistan","Palau","Palestine","Panama",
+  "Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar",
+  "Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia",
+  "Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe",
+  "Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia",
+  "Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan",
+  "Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan",
+  "Tajikistan","Tanzania","Thailand","Timor-Leste","Togo","Tonga","Trinidad and Tobago",
+  "Tunisia","Turkey","Turkmenistan","Tuvalu","Uganda","Ukraine","United Arab Emirates",
+  "United Kingdom","United States","Uruguay","Uzbekistan","Vanuatu","Vatican City",
+  "Venezuela","Vietnam","Yemen","Zambia","Zimbabwe",
 ];
 
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isBlank = (v) => !String(v ?? "").trim();
+
+const validateAddress = (addr) => String(addr ?? "").trim().length >= 5;
+
+// Tunisie => 4 chiffres (4000). Sinon => 3-10 alphanum + espace/-
+const validatePostalCode = (country, code) => {
+  const c = String(code ?? "").trim();
+  if (!c) return false;
+  if (country === "Tunisia") return /^\d{4}$/.test(c);
+  return /^[A-Za-z0-9][A-Za-z0-9 -]{2,9}$/.test(c);
 };
 
 const triggerFileInput = () => {
@@ -665,12 +817,14 @@ const triggerFileInput = () => {
 };
 
 const handleLogoUpload = (event) => {
-  const file = event.target.files?.[0];
+  const file = event?.target?.files?.[0];
   if (!file) return;
+
   form.logo = file;
+
   const reader = new FileReader();
-  reader.onload = (e) => {
-    form.logoPreview = e.target.result;
+  reader.onload = () => {
+    form.logoPreview = String(reader.result || "");
   };
   reader.readAsDataURL(file);
 };
@@ -681,49 +835,84 @@ const removeLogo = () => {
   if (fileInput.value) fileInput.value.value = "";
 };
 
+const clearError = (field) => {
+  if (field in errors) errors[field] = "";
+};
+
+const showHint = (field) => {
+  if (field in hints) hints[field] = true;
+};
+
+const hideHint = (field) => {
+  if (field in hints) hints[field] = false;
+};
+
 const nextStep = () => {
-  Object.keys(errors).forEach((key) => (errors[key] = ""));
+  Object.keys(errors).forEach((k) => (errors[k] = ""));
 
   if (currentStep.value === 0) {
     let hasError = false;
-    if (!form.nomSociete) { errors.nomSociete = t("required"); hasError = true; }
-    if (!form.tvaNumber) { errors.tvaNumber = t("required"); hasError = true; }
-    if (!form.adresse1) { errors.adresse1 = t("required"); hasError = true; }
-    if (!form.codePostal) { errors.codePostal = t("required"); hasError = true; }
-    if (!form.pays) { errors.pays = t("required"); hasError = true; }
-    if (!form.secteur) { errors.secteur = t("required"); hasError = true; }
-    if (form.secteur === "Autres" && !form.autresSecteur) {
+
+    if (isBlank(form.nomSociete)) { errors.nomSociete = t("required"); hasError = true; }
+    if (isBlank(form.tvaNumber)) { errors.tvaNumber = t("required"); hasError = true; }
+
+    if (isBlank(form.adresse1)) {
+      errors.adresse1 = t("required");
+      hasError = true;
+    } else if (!validateAddress(form.adresse1)) {
+      errors.adresse1 = t("addressInvalid");
+      hasError = true;
+    }
+
+    if (isBlank(form.codePostal)) {
+      errors.codePostal = t("required");
+      hasError = true;
+    } else if (!validatePostalCode(form.pays, form.codePostal)) {
+      errors.codePostal = t("postalInvalid");
+      hasError = true;
+    }
+
+    if (isBlank(form.pays)) { errors.pays = t("required"); hasError = true; }
+    if (isBlank(form.secteur)) { errors.secteur = t("required"); hasError = true; }
+
+    if (form.secteur === "Autres" && isBlank(form.autresSecteur)) {
       errors.autresSecteur = t("required");
       hasError = true;
     }
+
     if (hasError) return;
   }
 
   if (currentStep.value === 1) {
     let hasError = false;
-    if (!form.email) {
+
+    if (isBlank(form.email)) {
       errors.email = t("required");
       hasError = true;
     } else if (!validateEmail(form.email)) {
       errors.email = t("emailInvalid");
       hasError = true;
     }
-    if (!form.password) {
+
+    if (isBlank(form.password)) {
       errors.password = t("required");
       hasError = true;
     } else if (form.password.length < 8) {
       errors.password = t("passwordLength");
       hasError = true;
     }
-    if (!form.passwordConfirm) {
+
+    if (isBlank(form.passwordConfirm)) {
       errors.passwordConfirm = t("required");
       hasError = true;
     } else if (form.password !== form.passwordConfirm) {
       errors.passwordConfirm = t("passwordMatch");
       hasError = true;
     }
-    if (!form.firstName) { errors.firstName = t("required"); hasError = true; }
-    if (!form.lastName) { errors.lastName = t("required"); hasError = true; }
+
+    if (isBlank(form.firstName)) { errors.firstName = t("required"); hasError = true; }
+    if (isBlank(form.lastName)) { errors.lastName = t("required"); hasError = true; }
+
     if (hasError) return;
   }
 
@@ -739,9 +928,7 @@ const submitForm = async () => {
   serverError.value = "";
 
   try {
-    await axios.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-      withCredentials: true,
-    });
+
     const formData = new FormData();
     formData.append("company_name", form.nomSociete);
     formData.append("tva_number", form.tvaNumber);
@@ -750,9 +937,12 @@ const submitForm = async () => {
     formData.append("postal_code", form.codePostal);
     formData.append("country", form.pays);
     formData.append("sector", form.secteur);
+
     if (form.secteur === "Autres") formData.append("sector_other", form.autresSecteur);
+
     formData.append("partner", form.partner || "");
     if (form.partner === "Autre") formData.append("partner_other", form.partnerOther || "");
+
     formData.append("email", form.email);
     formData.append("password", form.password);
     formData.append("password_confirmation", form.passwordConfirm);
@@ -760,15 +950,12 @@ const submitForm = async () => {
     formData.append("last_name", form.lastName);
     formData.append("function", form.fonction || "");
     formData.append("language", lang.value);
+
     if (form.logo) formData.append("logo", form.logo);
 
-    await axios.post("http://127.0.0.1:8000/api/auth/register", formData, {
-      withCredentials: true,
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    await api.post("/api/auth/register", formData);
 
-    alert(t("success"));
-    router.push("/login");
+    router.push("/register-success");
   } catch (error) {
     console.error(error);
     serverError.value =
@@ -783,10 +970,22 @@ const submitForm = async () => {
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
+* { box-sizing: border-box; }
+
+.hint-message {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: #6b7280;
 }
 
+.server-error {
+  color: #dc2626;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- ton CSS existant ---- */
 .register-wrapper {
   background: #f8f9fb;
   min-height: 100vh;
@@ -820,9 +1019,7 @@ const submitForm = async () => {
   gap: 16px;
 }
 
-.language-dropdown {
-  position: relative;
-}
+.language-dropdown { position: relative; }
 
 .language-toggle {
   display: inline-flex;
@@ -837,24 +1034,14 @@ const submitForm = async () => {
   color: #111827;
   transition: all 0.2s ease;
 }
-
 .language-toggle:hover {
   border-color: #2563eb;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
-.globe-icon {
-  font-size: 1rem;
-}
-
-.lang-code {
-  font-weight: 500;
-}
-
-.chevron {
-  font-size: 0.75rem;
-  margin-left: 0.15rem;
-}
+.globe-icon { font-size: 1rem; }
+.lang-code { font-weight: 500; }
+.chevron { font-size: 0.75rem; margin-left: 0.15rem; }
 
 .language-menu {
   position: absolute;
@@ -867,7 +1054,6 @@ const submitForm = async () => {
   min-width: 140px;
   z-index: 20;
 }
-
 .language-option {
   width: 100%;
   border: none;
@@ -880,10 +1066,7 @@ const submitForm = async () => {
   cursor: pointer;
   color: #111827;
 }
-
-.language-option:hover {
-  background-color: #f3f4f6;
-}
+.language-option:hover { background-color: #f3f4f6; }
 
 .fade-scale-enter-active,
 .fade-scale-leave-active {
@@ -908,9 +1091,7 @@ const submitForm = async () => {
   cursor: pointer;
   transition: all 0.2s;
 }
-.login-link:hover {
-  background-color: #2563eb;
-}
+.login-link:hover { background-color: #2563eb; }
 
 .register-container {
   display: flex;
@@ -931,11 +1112,7 @@ const submitForm = async () => {
   margin-bottom: 40px;
   max-width: 100%;
 }
-
-.step {
-  display: flex;
-  align-items: center;
-}
+.step { display: flex; align-items: center; }
 
 .circle {
   width: 14px;
@@ -947,10 +1124,7 @@ const submitForm = async () => {
   transition: all 0.3s;
   flex-shrink: 0;
 }
-.circle.active {
-  border-color: #0a58ff;
-  background: #0a58ff;
-}
+.circle.active { border-color: #0a58ff; background: #0a58ff; }
 
 .line {
   height: 2px;
@@ -959,19 +1133,10 @@ const submitForm = async () => {
   margin: 0 10px;
   flex-shrink: 0;
 }
-.line.filled {
-  background: #0a58ff;
-}
+.line.filled { background: #0a58ff; }
 
-.step p {
-  font-size: 14px;
-  color: #999;
-  white-space: nowrap;
-}
-.activeText {
-  color: #0a58ff !important;
-  font-weight: 600;
-}
+.step p { font-size: 14px; color: #999; white-space: nowrap; }
+.activeText { color: #0a58ff !important; font-weight: 600; }
 
 .form-card {
   background: white;
@@ -981,39 +1146,14 @@ const submitForm = async () => {
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
+.form-title { font-size: 28px; font-weight: 700; color: #001d48; }
+.form-subtitle { color: #666; margin-bottom: 30px; }
+.section-title { font-size: 18px; color: #001d48; margin-bottom: 15px; }
 
-.form-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #001d48;
-}
+.form-group { display: flex; flex-direction: column; margin-bottom: 20px; }
+label { color: #444; font-weight: 500; margin-bottom: 5px; font-size: 14px; }
 
-.form-subtitle {
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.section-title {
-  font-size: 18px;
-  color: #001d48;
-  margin-bottom: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-label {
-  color: #444;
-  font-weight: 500;
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-input,
-select {
+input, select {
   padding: 10px;
   border: 1px solid #d5d5d5;
   border-radius: 6px;
@@ -1022,8 +1162,7 @@ select {
   background-color: #f9fafb;
   width: 100%;
 }
-input:focus,
-select:focus {
+input:focus, select:focus {
   border-color: #0a58ff;
   outline: none;
   background-color: white;
@@ -1033,7 +1172,6 @@ select:focus {
   border-color: #ef4444 !important;
   background-color: #fef2f2 !important;
 }
-
 .input-error:focus {
   border-color: #dc2626 !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
@@ -1048,7 +1186,6 @@ select:focus {
   gap: 0.35rem;
   font-weight: 500;
 }
-
 .error-dot {
   width: 6px;
   height: 6px;
@@ -1058,67 +1195,25 @@ select:focus {
 }
 
 .error-slide-enter-active,
-.error-slide-leave-active {
-  transition: all 0.25s ease;
-}
-
+.error-slide-leave-active { transition: all 0.25s ease; }
 .error-slide-enter-from,
-.error-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
+.error-slide-leave-to { opacity: 0; transform: translateY(-6px); }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 
 @media (max-width: 640px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-  
-  .topbar {
-    padding: 15px 20px;
-  }
-  
-  .form-card {
-    padding: 30px 20px;
-  }
-  
-  .stepper {
-    padding: 20px;
-  }
-  
-  .step p {
-    font-size: 12px;
-  }
-  
-  .line {
-    width: 30px;
-  }
+  .grid-2 { grid-template-columns: 1fr; }
+  .topbar { padding: 15px 20px; }
+  .form-card { padding: 30px 20px; }
+  .stepper { padding: 20px; }
+  .step p { font-size: 12px; }
+  .line { width: 30px; }
 }
 
-.confirmation ul {
-  list-style: none;
-  padding: 0;
-  margin-top: 20px;
-}
-
-.confirmation li {
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.confirmation-text {
-  margin-top: 10px;
-}
-
-.confirmation-logo {
-  margin-bottom: 20px;
-}
-
+.confirmation ul { list-style: none; padding: 0; margin-top: 20px; }
+.confirmation li { padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.confirmation-text { margin-top: 10px; }
+.confirmation-logo { margin-bottom: 20px; }
 .confirmation-logo-title {
   font-size: 14px;
   font-weight: 600;
@@ -1152,19 +1247,10 @@ select:focus {
   cursor: pointer;
   font-weight: 600;
 }
-.primary-btn:hover {
-  background: #0847cc;
-}
-.primary-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.primary-btn:hover { background: #0847cc; }
+.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.logo-upload-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.logo-upload-container { display: flex; flex-direction: column; gap: 10px; }
 
 .logo-preview {
   width: 150px;
@@ -1178,16 +1264,8 @@ select:focus {
   transition: all 0.3s;
   background-color: #f9fafb;
 }
-
-.logo-preview-small {
-  width: 110px;
-  height: 110px;
-}
-
-.logo-preview:hover {
-  border-color: #0a58ff;
-  background-color: #f0f7ff;
-}
+.logo-preview-small { width: 110px; height: 110px; }
+.logo-preview:hover { border-color: #0a58ff; background-color: #f0f7ff; }
 
 .logo-placeholder {
   display: flex;
@@ -1198,15 +1276,8 @@ select:focus {
   text-align: center;
   padding: 20px;
 }
-
-.logo-placeholder svg {
-  color: #d1d5db;
-}
-
-.logo-placeholder p {
-  font-size: 13px;
-  font-weight: 500;
-}
+.logo-placeholder svg { color: #d1d5db; }
+.logo-placeholder p { font-size: 13px; font-weight: 500; }
 
 .logo-image {
   width: 100%;
@@ -1227,22 +1298,10 @@ select:focus {
   font-weight: 500;
   transition: background 0.2s;
 }
+.remove-logo-btn:hover { background: #dc2626; }
 
-.remove-logo-btn:hover {
-  background: #dc2626;
-}
-
-.password-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-wrapper input {
-  width: 100%;
-  padding-right: 36px;
-}
-
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { width: 100%; padding-right: 36px; }
 .eye-btn {
   position: absolute;
   right: 8px;

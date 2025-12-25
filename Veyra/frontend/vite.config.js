@@ -4,8 +4,9 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
-// https://vite.dev/config/
 export default defineConfig({
+  base: '/', // ✅ OBLIGATOIRE POUR SOUS-DOMAINE
+
   plugins: [
     vue(),
     vueDevTools(),
@@ -17,7 +18,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true, // Permet d'écouter sur toutes les interfaces
-    strictPort: true // Assure que le port 5173 est utilisé
+    host: true,
+    strictPort: true
   }
 })

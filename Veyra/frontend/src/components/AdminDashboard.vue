@@ -369,7 +369,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import axios from "axios";
+import api from "@/services/api";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -392,8 +392,9 @@ const adminName = computed(() => {
   return 'Admin';
 });
 
-axios.defaults.baseURL = "http://127.0.0.1:8000";
-
+// Axios.defaults.baseURL = import.meta.env.PROD
+//   ? "https://dtex.greenpulse-consulting.tn"
+//   : "http://127.0.0.1:8000";
 const stats = computed(() => {
   return {
     total: users.value.length,
@@ -436,7 +437,7 @@ const fetchUsers = async () => {
   }
 
   try {
-    const res = await axios.get("/api/admin/users", {
+const res = await api.get("/api/admin/users", {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
@@ -458,7 +459,7 @@ const approveUser = async (user) => {
   error.value = "";
 
   try {
-    const res = await axios.patch(
+const res = await api.patch(
       `/api/admin/users/${user.id}/approve`,
       {},
       {
@@ -485,7 +486,7 @@ const rejectUser = async (user) => {
   error.value = "";
 
   try {
-    const res = await axios.patch(
+    const res = await api.patch(
       `/api/admin/users/${user.id}/reject`,
       {},
       {

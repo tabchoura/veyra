@@ -92,36 +92,35 @@ class UserController extends Controller
 
     /**
      * Envoyer email d'approbation
-     */
-    private function sendApprovalEmail(User $user)
-    {
-        $subject = $user->language === 'fr' 
-            ? 'Votre compte Veyra a été approuvé'
-            : 'Your Veyra account has been approved';
+     */private function sendApprovalEmail(User $user)
+{
+    $subject = $user->language === 'fr' 
+        ? 'Votre compte Veyra a été approuvé'
+        : 'Your Veyra account has been approved';
 
-        $message = $user->language === 'fr'
-            ? "Bonjour {$user->first_name},\n\n"
-              . "Bonne nouvelle ! Votre compte Veyra a été approuvé par notre équipe.\n\n"
-              . "Vous pouvez maintenant vous connecter et accéder à tous nos services.\n\n"
-              . "Connectez-vous sur : " . url('/login') . "\n\n"
-              . "Cordialement,\n"
-              . "L'équipe Veyra"
-            : "Hello {$user->first_name},\n\n"
-              . "Good news! Your Veyra account has been approved by our team.\n\n"
-              . "You can now log in and access all our services.\n\n"
-              . "Log in at: " . url('/login') . "\n\n"
-              . "Best regards,\n"
-              . "The Veyra Team";
+    $message = $user->language === 'fr'
+        ? "Bonjour {$user->first_name},\n\n"
+          . "Bonne nouvelle ! Votre compte Veyra a été approuvé par notre équipe.\n\n"
+          . "Vous pouvez maintenant vous connecter et accéder à tous nos services.\n\n"
+          . "Connectez-vous sur : https://dtex.greenpulse-consulting.tn/login\n\n"
+          . "Cordialement,\n"
+          . "L'équipe Veyra"
+        : "Hello {$user->first_name},\n\n"
+          . "Good news! Your Veyra account has been approved by our team.\n\n"
+          . "You can now log in and access all our services.\n\n"
+          . "Log in at: https://dtex.greenpulse-consulting.tn/login\n\n"
+          . "Best regards,\n"
+          . "The Veyra Team";
 
-        try {
-            Mail::raw($message, function ($mail) use ($user, $subject) {
-                $mail->to($user->email)
-                     ->subject($subject);
-            });
-        } catch (\Exception $e) {
-            \Log::error('Failed to send approval email: ' . $e->getMessage());
-        }
+    try {
+        Mail::raw($message, function ($mail) use ($user, $subject) {
+            $mail->to($user->email)
+                 ->subject($subject);
+        });
+    } catch (\Exception $e) {
+        \Log::error('Failed to send approval email: ' . $e->getMessage());
     }
+}
 
     /**
      * Envoyer email de refus

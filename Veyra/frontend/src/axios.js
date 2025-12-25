@@ -1,13 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
-const instance = axios.create({
-  baseURL: 'http://127.0.0.1:8000',
-  withCredentials: true,
+const api = axios.create({
+  baseURL: import.meta.env.PROD
+    ? "https://dtex.greenpulse-consulting.tn"
+    : "http://127.0.0.1:8000",
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  }
+    Accept: "application/json",
+  },
 });
 
-export default instance;
-
+export default api;

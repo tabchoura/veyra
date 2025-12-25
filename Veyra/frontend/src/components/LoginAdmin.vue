@@ -219,7 +219,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import api from '@/axios'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -316,16 +316,13 @@ const login = async () => {
   isLoading.value = true
 
   try {
-    await axios.get('/sanctum/csrf-cookie', { withCredentials: true })
+await api.get('/sanctum/csrf-cookie')
 
-    const response = await axios.post(
-      '/api/auth/loginadmin',
-      {
-        email: email.value,
-        password: password.value
-      },
-      { withCredentials: true }
-    )
+const response = await api.post('/api/auth/loginadmin', {
+  email: email.value,
+  password: password.value
+})
+
 
     const user = response.data.user
     const token = response.data.token
@@ -342,7 +339,7 @@ const login = async () => {
     localStorage.setItem('user', JSON.stringify(user))
 
     // Configurer Axios pour les prochains appels
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
     successMessage.value = t.value.success
 
