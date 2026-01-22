@@ -240,161 +240,169 @@
       </div>
     </div>
   </div>
-</template>
-<script setup>
-import { ref, computed } from 'vue'
-import api from '@/axios'
-import { useRouter } from 'vue-router'
+</template><script setup>
+import { ref, computed } from "vue";
+import api from "@/axios";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
 
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
-const language = ref('fr')
-const isLoading = ref(false)
-const emailError = ref('')
-const passwordError = ref('')
-const adminError = ref('')
-const isLangMenuOpen = ref(false)
-const rememberMe = ref(false)
-const successMessage = ref('')
+const email = ref("");
+const password = ref("");
+const showPassword = ref(false);
+const language = ref("fr");
+const isLoading = ref(false);
+const emailError = ref("");
+const passwordError = ref("");
+const adminError = ref("");
+const isLangMenuOpen = ref(false);
+const rememberMe = ref(false);
+const successMessage = ref("");
 
 const languageOptions = [
-  { code: 'en', label: 'EN' },
-  { code: 'fr', label: 'FR' }
-]
+  { code: "en", label: "EN" },
+  { code: "fr", label: "FR" },
+];
 
 const translations = {
   fr: {
-    title: 'Bienvenue sur  Veyra ®',
+    title: "Bienvenue sur  Veyra ®",
     description:
       "Transformez votre démarche de durabilité avec Veyra. La solution intégrée pour la comptabilité carbone, le reporting environnemental et la planification climatique.",
-    question: 'Une question ? Lisez la',
-    faq: 'FAQ',
-    or: 'ou',
-    contact: 'contactez-nous',
-    email: 'Email',
-    emailPlaceholder: 'Renseignez votre adresse email',
-    password: 'Mot de passe',
-    passwordPlaceholder: 'Renseignez votre mot de passe',
-    forgotPassword: 'Mot de passe oublié ?',
-    connect: 'Se connecter',
-    firstTime: 'Première connexion ?',
-    activate: 'Activer mon compte',
-    loading: 'Connexion en cours...',
-    emailInvalid: 'Email invalide',
-    passwordShort: 'Mot de passe trop court (min. 6 caractères)',
-    show: 'Afficher',
-    hide: 'Masquer',
-    success: 'Connexion réussie !',
-    adminRestricted: 'Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l\'espace d\'administration.',
-    accountNotApproved: 'Vous n\'avez pas accès. Votre compte n\'est pas encore validé.',
-    invalidCredentials: 'Identifiants incorrects'
+    question: "Une question ? Lisez la",
+    faq: "FAQ",
+    or: "ou",
+    contact: "contactez-nous",
+    email: "Email",
+    emailPlaceholder: "Renseignez votre adresse email",
+    password: "Mot de passe",
+    passwordPlaceholder: "Renseignez votre mot de passe",
+    forgotPassword: "Mot de passe oublié ?",
+    connect: "Se connecter",
+    firstTime: "Première connexion ?",
+    activate: "Activer mon compte",
+    loading: "Connexion en cours...",
+    emailInvalid: "Email invalide",
+    passwordShort: "Mot de passe trop court (min. 6 caractères)",
+    show: "Afficher",
+    hide: "Masquer",
+    success: "Connexion réussie !",
+    adminRestricted:
+      "Les administrateurs ne peuvent pas se connecter ici. Veuillez utiliser l'espace d'administration.",
+    accountNotApproved:
+      "Vous n'avez pas accès. Votre compte n'est pas encore validé.",
+    invalidCredentials: "Identifiants incorrects",
   },
   en: {
-    title: 'Welcome to Veyra ®',
+    title: "Welcome to Veyra ®",
     description:
-      'transform your sustainability journey with Veyra. The integrated solution for carbon accounting, environmental reporting, and climate action planning.',
-    question: 'Any questions? Read the',
-    faq: 'FAQ',
-    or: 'or',
-    contact: 'contact us',
-    email: 'Email',
-    emailPlaceholder: 'Enter your email address',
-    password: 'Password',
-    passwordPlaceholder: 'Enter your password',
-    forgotPassword: 'Forgot password?',
-    connect: 'Sign in',
-    firstTime: 'First time?',
-    activate: 'Activate my account',
-    loading: 'Connecting...',
-    emailInvalid: 'Invalid email',
-    passwordShort: 'Password too short (min. 6 characters)',
-    show: 'Show',
-    hide: 'Hide',
-    success: 'Login successful!',
-    adminRestricted: 'Administrators cannot log in here. Please use the admin space.',
-    accountNotApproved: 'You do not have access. Your account has not been validated yet.',
-    invalidCredentials: 'Incorrect credentials'
-  }
-}
+      "transform your sustainability journey with Veyra. The integrated solution for carbon accounting, environmental reporting, and climate action planning.",
+    question: "Any questions? Read the",
+    faq: "FAQ",
+    or: "or",
+    contact: "contact us",
+    email: "Email",
+    emailPlaceholder: "Enter your email address",
+    password: "Password",
+    passwordPlaceholder: "Enter your password",
+    forgotPassword: "Forgot password?",
+    connect: "Sign in",
+    firstTime: "First time?",
+    activate: "Activate my account",
+    loading: "Connecting...",
+    emailInvalid: "Invalid email",
+    passwordShort: "Password too short (min. 6 characters)",
+    show: "Show",
+    hide: "Hide",
+    success: "Login successful!",
+    adminRestricted:
+      "Administrators cannot log in here. Please use the admin space.",
+    accountNotApproved:
+      "You do not have access. Your account has not been validated yet.",
+    invalidCredentials: "Incorrect credentials",
+  },
+};
 
-const t = computed(() => translations[language.value])
+const t = computed(() => translations[language.value]);
 
 const selectLanguage = (code) => {
-  language.value = code
-  isLangMenuOpen.value = false
-}
+  language.value = code;
+  isLangMenuOpen.value = false;
+};
 
 const validateEmail = (emailValue) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(emailValue)
-}
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(emailValue);
+};
 
 const login = async () => {
-  // Réinitialiser TOUTES les erreurs
-  emailError.value = ''
-  passwordError.value = ''
-  adminError.value = ''
-  successMessage.value = ''
+  emailError.value = "";
+  passwordError.value = "";
+  adminError.value = "";
+  successMessage.value = "";
 
-  // Validation
   if (!validateEmail(email.value)) {
-    emailError.value = t.value.emailInvalid
-    return
+    emailError.value = t.value.emailInvalid;
+    return;
   }
 
   if (password.value.length < 6) {
-    passwordError.value = t.value.passwordShort
-    return
+    passwordError.value = t.value.passwordShort;
+    return;
   }
 
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    await api.get('/sanctum/csrf-cookie')
+    await api.get("/sanctum/csrf-cookie");
 
-const response = await api.post('/api/auth/login', {
-  email: email.value,
-  password: password.value,
-  remember: rememberMe.value
-})
+    const response = await api.post("/api/auth/login", {
+      email: email.value,
+      password: password.value,
+      remember: rememberMe.value,
+    });
 
+    const userData = response.data;
 
-    // ✅ Connexion réussie
-    const userData = response.data
-    const storage = rememberMe.value ? localStorage : sessionStorage
-    storage.setItem('userSession', JSON.stringify(userData))
+    // ✅ Choix storage selon rememberMe
+    const storage = rememberMe.value ? localStorage : sessionStorage;
 
-    successMessage.value = t.value.success
-    
+    // ✅ Nettoyer l'autre storage (évite conflits)
+    const otherStorage = rememberMe.value ? sessionStorage : localStorage;
+    ["token", "user", "userSession"].forEach((k) => otherStorage.removeItem(k));
+
+    // ✅ SAUVEGARDE CORRECTE (c’est ça qui manquait)
+    storage.setItem("token", userData.token);
+    storage.setItem("user", JSON.stringify(userData.user));
+    storage.setItem("userSession", JSON.stringify(userData)); // optionnel
+
+    successMessage.value = t.value.success;
+
     setTimeout(() => {
-      router.push('/dashboard')
-    }, 500)
-
+      router.push("/user/dashboard");
+    }, 300);
   } catch (err) {
     if (err.response && err.response.data) {
-      const errorType = err.response.data.error_type
-      
-      // ✅ Afficher le message selon le type d'erreur
-      if (errorType === 'admin_restricted') {
-        adminError.value = t.value.adminRestricted
-      } else if (errorType === 'not_approved') {
-        adminError.value = t.value.accountNotApproved
+      const errorType = err.response.data.error_type;
+
+      if (errorType === "admin_restricted") {
+        adminError.value = t.value.adminRestricted;
+      } else if (errorType === "not_approved") {
+        adminError.value = t.value.accountNotApproved;
       } else if (err.response.status === 401) {
-        adminError.value = t.value.invalidCredentials
+        adminError.value = t.value.invalidCredentials;
       } else {
-        adminError.value = err.response.data.message || 'Une erreur est survenue'
+        adminError.value = err.response.data.message || "Une erreur est survenue";
       }
     } else {
-      adminError.value = 'Erreur de connexion'
+      adminError.value = "Erreur de connexion";
     }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
+
 
 <style scoped>
 * {

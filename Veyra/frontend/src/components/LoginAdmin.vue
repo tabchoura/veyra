@@ -316,7 +316,6 @@ const login = async () => {
   isLoading.value = true
 
   try {
-await api.get('/sanctum/csrf-cookie')
 
 const response = await api.post('/api/auth/loginadmin', {
   email: email.value,
@@ -345,7 +344,7 @@ api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
     // Redirection vers dashboard admin
     setTimeout(() => {
-      router.push('/dashboard/admin')
+      router.push('/admin')
     }, 500)
 
   } catch (err) {

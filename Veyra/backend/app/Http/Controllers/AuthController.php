@@ -317,6 +317,7 @@ class AuthController extends Controller
                 'quota_dpp'    => $user->quota_dpp,
                 'email_verified' => $user->email_verified,
                 'created_at'     => $user->created_at,
+                
             ]
         ], 200);
     }

@@ -12,16 +12,36 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // IMPORTANT : Sanctum doit être en premier
+
+        /*
+        |--------------------------------------------------------------------------
+        | API Middleware (Sanctum)
+        |--------------------------------------------------------------------------
+        */
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        // Désactiver la vérification CSRF pour les routes API
+        /*
+        |--------------------------------------------------------------------------
+        | Middleware Aliases (تعويض Kernel.php)
+        |--------------------------------------------------------------------------
+        */
+     $middleware->alias([
+    'superuser' => \App\Http\Middleware\CheckSuperUser::class,
+    'approved'  => \App\Http\Middleware\CheckApproved::class,
+]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Disable CSRF for API routes
+        |--------------------------------------------------------------------------
+        */
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->create();
