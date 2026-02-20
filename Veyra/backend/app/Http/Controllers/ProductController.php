@@ -47,19 +47,34 @@ class ProductController extends Controller
     /**
      * GET /api/products
      * Liste des produits de l'utilisateur connecté
-     */
-    public function index(Request $request)
-    {
-        $products = Product::query()
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->get();
+     */public function index(Request $request)
+{
+    $products = \App\Models\Product::with('passport')
+        // si tu veux seulement les produits du user connecté :
+        // ->where('created_by', $request->user()->id)
+        ->latest()
+        ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $products,
-        ]);
-    }
+    return response()->json([
+        'data' => $products->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'product_name' => $p->product_name,
+                'product_image' => $p->product_image,
+                'category' => $p->category,
+                'item_code' => $p->item_code,
+                'created_at' => $p->created_at,
+
+                // ✅ PROGRESS (IMPORTANT)
+                'completed_steps' => $p->passport?->completed_steps ?? 0,
+                'total_steps' => $p->passport?->total_steps ?? 13,
+
+                // ✅ status côté front (tu utilises passport_status)
+                'passport_status' => $p->passport?->status ?? 'draft',
+            ];
+        }),
+    ]);
+}
 
     /**
      * GET /api/products/{id}

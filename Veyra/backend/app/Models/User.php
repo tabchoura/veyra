@@ -110,4 +110,9 @@ class User extends Authenticatable
     {
         return in_array($this->dpp_access, [1, 2], true);
     }
+    public function yarns()
+{
+    return $this->hasMany(Yarn::class);
+}
+
 }

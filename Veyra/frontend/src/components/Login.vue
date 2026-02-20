@@ -132,7 +132,6 @@
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
                 >
                   <rect x="5" y="11" width="14" height="10" rx="2"></rect>
                   <path d="M12 17a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"></path>
@@ -240,7 +239,9 @@
       </div>
     </div>
   </div>
-</template><script setup>
+</template>
+
+<script setup>
 import { ref, computed } from "vue";
 import api from "@/axios";
 import { useRouter } from "vue-router";
@@ -364,17 +365,17 @@ const login = async () => {
 
     const userData = response.data;
 
-    // ✅ Choix storage selon rememberMe
-    const storage = rememberMe.value ? localStorage : sessionStorage;
+    console.log('=== LOGIN SUCCESS ===');
+    console.log('User data received:', userData);
+    console.log('Token:', userData.token ? 'Token exists' : 'NO TOKEN');
 
-    // ✅ Nettoyer l'autre storage (évite conflits)
-    const otherStorage = rememberMe.value ? sessionStorage : localStorage;
-    ["token", "user", "userSession"].forEach((k) => otherStorage.removeItem(k));
+    // ✅ TOUJOURS utiliser localStorage pour éviter les problèmes
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("user", JSON.stringify(userData.user));
+    localStorage.setItem("userSession", JSON.stringify(userData));
 
-    // ✅ SAUVEGARDE CORRECTE (c’est ça qui manquait)
-    storage.setItem("token", userData.token);
-    storage.setItem("user", JSON.stringify(userData.user));
-    storage.setItem("userSession", JSON.stringify(userData)); // optionnel
+    console.log('✅ Token saved to localStorage:', localStorage.getItem('token') ? 'SUCCESS ✓' : 'FAILED ✗');
+    console.log('Token preview:', localStorage.getItem('token')?.substring(0, 30) + '...');
 
     successMessage.value = t.value.success;
 
@@ -382,6 +383,10 @@ const login = async () => {
       router.push("/user/dashboard");
     }, 300);
   } catch (err) {
+    console.error('=== LOGIN ERROR ===');
+    console.error('Error:', err);
+    console.error('Response:', err.response?.data);
+    
     if (err.response && err.response.data) {
       const errorType = err.response.data.error_type;
 
@@ -402,7 +407,6 @@ const login = async () => {
   }
 };
 </script>
-
 
 <style scoped>
 * {

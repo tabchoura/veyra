@@ -87,4 +87,9 @@ class Product extends Model
     {
         return $this->hasMany(Fiber::class);
     }
+    public function passport()
+{
+    return $this->hasOne(\App\Models\Passport::class, 'product_id');
+}
+
 }
